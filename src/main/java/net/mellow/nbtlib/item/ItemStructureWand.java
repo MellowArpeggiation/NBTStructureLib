@@ -32,7 +32,7 @@ public class ItemStructureWand extends Item {
     @Override
     @SideOnly(Side.CLIENT)
     public void addInformation(ItemStack stack, EntityPlayer player, List<String> list, boolean bool) {
-        for(String line : I18n.format(getUnlocalizedName() + ".desc").split("\\$")) {
+        for (String line : I18n.format(getUnlocalizedName() + ".desc").split("\\$")) {
             list.add(line);
         }
 

@@ -101,7 +101,7 @@ public class NBTUpdatePacket implements IMessage {
             try {
                 NBTTagCompound nbt = message.buffer.readNBTTagCompoundFromBuffer();
 
-                if (nbt != null) {
+                if (nbt != null && tile != null) {
                     tile.readFromNBT(nbt);
                 }
             } catch (IOException e) {

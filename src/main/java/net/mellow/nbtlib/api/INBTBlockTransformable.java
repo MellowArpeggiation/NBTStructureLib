@@ -23,24 +23,24 @@ public interface INBTBlockTransformable {
      */
 
     public static int transformMetaSignLadder(int meta, int coordBaseMode) {
-        if(coordBaseMode == 0) return meta;
-        switch(coordBaseMode) {
+        if (coordBaseMode == 0) return meta;
+        switch (coordBaseMode) {
         case 1: //West
-            switch(meta) {
+            switch (meta) {
             case 2: return 5;
             case 3: return 4;
             case 4: return 2;
             case 5: return 3;
             }
         case 2: //North
-            switch(meta) {
+            switch (meta) {
             case 2: return 3;
             case 3: return 2;
             case 4: return 5;
             case 5: return 4;
             }
         case 3: //East
-            switch(meta) {
+            switch (meta) {
             case 2: return 4;
             case 3: return 5;
             case 4: return 3;
@@ -51,10 +51,10 @@ public interface INBTBlockTransformable {
     }
 
     public static int transformMetaStairs(int meta, int coordBaseMode) {
-        if(coordBaseMode == 0) return meta;
+        if (coordBaseMode == 0) return meta;
         switch(coordBaseMode) {
         case 1: //West
-            if((meta & 3) < 2) //Flip second bit for E/W
+            if ((meta & 3) < 2) //Flip second bit for E/W
                 meta = meta ^ 2;
             else
                 meta = meta ^ 3; //Flip both bits for N/S
@@ -63,7 +63,7 @@ public interface INBTBlockTransformable {
             meta = meta ^ 1; //Flip first bit
             break;
         case 3: //East
-            if((meta & 3) < 2) //Flip both bits for E/W
+            if ((meta & 3) < 2) //Flip both bits for E/W
                 meta = meta ^ 3;
             else //Flip second bit for N/S
                 meta = meta ^ 2;
@@ -73,18 +73,18 @@ public interface INBTBlockTransformable {
     }
 
     public static int transformMetaPillar(int meta, int coordBaseMode) {
-        if(coordBaseMode == 0 || coordBaseMode == 2) return meta;
+        if (coordBaseMode == 0 || coordBaseMode == 2) return meta;
         int type = meta & 3;
         int rot = meta & 12;
 
-        if(rot == 4) return type | 8;
-        if(rot == 8) return type | 4;
+        if (rot == 4) return type | 8;
+        if (rot == 8) return type | 4;
 
         return meta;
     }
 
     public static int transformMetaDirectional(int meta, int coordBaseMode) {
-        if(coordBaseMode == 0) return meta;
+        if (coordBaseMode == 0) return meta;
         int rot = meta & 3;
         int other = meta & 12;
 
@@ -103,24 +103,24 @@ public interface INBTBlockTransformable {
     }
 
     public static int transformMetaTorch(int meta, int coordBaseMode) {
-        if(coordBaseMode == 0) return meta;
-        switch(coordBaseMode) {
+        if (coordBaseMode == 0) return meta;
+        switch (coordBaseMode) {
         case 1: //West
-            switch(meta) {
+            switch (meta) {
             case 1: return 3;
             case 2: return 4;
             case 3: return 2;
             case 4: return 1;
             }
         case 2: //North
-            switch(meta) {
+            switch (meta) {
             case 1: return 2;
             case 2: return 1;
             case 3: return 4;
             case 4: return 3;
             }
         case 3: //East
-            switch(meta) {
+            switch (meta) {
             case 1: return 4;
             case 2: return 3;
             case 3: return 1;
@@ -131,20 +131,20 @@ public interface INBTBlockTransformable {
     }
 
     public static int transformMetaDoor(int meta, int coordBaseMode) {
-        if(coordBaseMode == 0) return meta;
-        if(meta == 8 || meta == 9) return meta; // ignore top parts
+        if (coordBaseMode == 0) return meta;
+        if (meta == 8 || meta == 9) return meta; // ignore top parts
 
         return transformMetaDirectional(meta, coordBaseMode);
     }
 
     public static int transformMetaLever(int meta, int coordBaseMode) {
-        if(coordBaseMode == 0) return meta;
-        if(meta <= 0 || meta >= 7) { //levers suck ass
+        if (coordBaseMode == 0) return meta;
+        if (meta <= 0 || meta >= 7) { //levers suck ass
             switch(coordBaseMode) {
             case 1: case 3: //west / east
                 meta ^= 0b111;
             }
-        } else if(meta >= 5) {
+        } else if (meta >= 5) {
             switch(coordBaseMode) {
             case 1: case 3: //west / east
                 meta = (meta + 1) % 2 + 5;

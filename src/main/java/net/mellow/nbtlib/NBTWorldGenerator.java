@@ -57,7 +57,7 @@ public class NBTWorldGenerator implements IWorldGenerator {
      */
     @Override
     public void generate(Random unusedRandom, int chunkX, int chunkZ, World world, IChunkProvider chunkGenerator, IChunkProvider chunkProvider) {
-        if(hasPopulationEvent) return; //If we've failed to generate any structures (flatlands)
+        if (hasPopulationEvent) return; //If we've failed to generate any structures (flatlands)
 
         if (!world.getWorldInfo().isMapFeaturesEnabled()) return;
 

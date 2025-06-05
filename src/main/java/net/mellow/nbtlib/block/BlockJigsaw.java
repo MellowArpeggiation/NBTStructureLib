@@ -1,5 +1,8 @@
 package net.mellow.nbtlib.block;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.lwjgl.input.Keyboard;
 
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
@@ -10,6 +13,7 @@ import cpw.mods.fml.relauncher.SideOnly;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.INBTBlockTransformable;
 import net.mellow.nbtlib.gui.IGuiProvider;
+import net.mellow.nbtlib.gui.ILookOverlay;
 import net.mellow.nbtlib.item.ModItems;
 import net.mellow.nbtlib.network.IControlReceiver;
 import net.mellow.nbtlib.network.NBTUpdatePacket;
@@ -30,6 +34,7 @@ import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
@@ -128,6 +133,7 @@ public class BlockJigsaw extends BlockContainer implements INBTBlockTransformabl
             if (block != null && block != ModBlocks.structure_jigsaw) {
                 jigsaw.replaceBlock = block;
                 jigsaw.replaceMeta = player.getHeldItem().getItemDamage();
+                jigsaw.markDirty();
 
                 return true;
             }
@@ -142,7 +148,7 @@ public class BlockJigsaw extends BlockContainer implements INBTBlockTransformabl
         return false;
     }
 
-    public static class TileEntityJigsaw extends TileEntity implements IControlReceiver, IGuiProvider {
+    public static class TileEntityJigsaw extends TileEntity implements IControlReceiver, IGuiProvider, ILookOverlay {
 
         private int selectionPriority = 0; // higher priority = this jigsaw block is selected first for generation
         private int placementPriority = 0; // higher priority = children of this jigsaw block are checked for jigsaw blocks of their own and selected first
@@ -202,15 +208,30 @@ public class BlockJigsaw extends BlockContainer implements INBTBlockTransformabl
             markDirty();
         }
 
-		@Override
-		public Object provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {
+        @Override
+        public Object provideContainer(int ID, EntityPlayer player, World world, int x, int y, int z) {
             return null;
-		}
+        }
 
-		@Override
-		public Object provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
+        @Override
+        public Object provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
             return new GuiJigsaw(this);
-		}
+        }
+
+        @Override
+        public List<String> printOverlay() {
+            List<String> text = new ArrayList<String>();
+
+            text.add(EnumChatFormatting.GRAY + "Target pool: " + EnumChatFormatting.RESET + pool);
+            text.add(EnumChatFormatting.GRAY + "Name: " + EnumChatFormatting.RESET + name);
+            text.add(EnumChatFormatting.GRAY + "Target name: " + EnumChatFormatting.RESET + target);
+            text.add(EnumChatFormatting.GRAY + "Turns into: " + EnumChatFormatting.RESET + GameRegistry.findUniqueIdentifierFor(replaceBlock).toString());
+            text.add(EnumChatFormatting.GRAY + "   with meta: " + EnumChatFormatting.RESET + replaceMeta);
+            text.add(EnumChatFormatting.GRAY + "Selection/Placement priority: " + EnumChatFormatting.RESET + selectionPriority + "/" + placementPriority);
+            text.add(EnumChatFormatting.GRAY + "Joint type: " + EnumChatFormatting.RESET + (isRollable ? "Rollable" : "Aligned"));
+
+            return text;
+        }
 
     }
 
@@ -289,8 +310,8 @@ public class BlockJigsaw extends BlockContainer implements INBTBlockTransformabl
             data.setString("name", textName.getText());
             data.setString("target", textTarget.getText());
 
-            try { data.setInteger("selection", Integer.parseInt(textSelectionPriority.getText())); } catch(Exception ex) {}
-            try { data.setInteger("placement", Integer.parseInt(textPlacementPriority.getText())); } catch(Exception ex) {}
+            try { data.setInteger("selection", Integer.parseInt(textSelectionPriority.getText())); } catch (Exception ex) {}
+            try { data.setInteger("placement", Integer.parseInt(textPlacementPriority.getText())); } catch (Exception ex) {}
 
             data.setBoolean("roll", jointToggle.displayString == "Rollable");
 

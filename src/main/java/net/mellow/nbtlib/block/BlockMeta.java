@@ -23,17 +23,17 @@ public class BlockMeta {
 
     @Override
     public boolean equals(Object obj) {
-        if(this == obj)
-            return true;
-        if(obj == null)
-            return false;
-        if(getClass() != obj.getClass())
-            return false;
+        if (this == obj) return true;
+        if (obj == null) return false;
+        if (getClass() != obj.getClass()) return false;
+
         BlockMeta other = (BlockMeta) obj;
-        if(block == null) {
-            if(other.block != null) return false;
-        } else if(!block.equals(other.block))
+        if (block == null) {
+            if (other.block != null) return false;
+        } else if (!block.equals(other.block)) {
             return false;
+        }
+
         return meta == other.meta;
     }
 
