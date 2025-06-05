@@ -115,8 +115,7 @@ public class NBTStructure {
         }
     }
 
-    // Saves a selected area into an NBT structure (+ some of our non-standard stuff
-    // to support 1.7.10)
+    // Saves a selected area into an NBT structure (+ some of our non-standard stuff to support 1.7.10)
     public static void saveArea(String filename, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
         NBTTagCompound structure = new NBTTagCompound();
         NBTTagList nbtBlocks = new NBTTagList();
@@ -335,8 +334,7 @@ public class NBTStructure {
                             toConnections = toHorizontalConnections;
                         }
 
-                        List<JigsawConnection> namedConnections = toConnections.computeIfAbsent(ourName,
-                                name -> new ArrayList<>());
+                        List<JigsawConnection> namedConnections = toConnections.computeIfAbsent(ourName, name -> new ArrayList<>());
                         namedConnections.add(connection);
 
                         if (!Config.debugStructures) {
@@ -454,8 +452,7 @@ public class NBTStructure {
         }
     }
 
-    protected boolean build(World world, JigsawPiece piece, StructureBoundingBox totalBounds,
-            StructureBoundingBox generatingBounds, int coordBaseMode) {
+    protected boolean build(World world, JigsawPiece piece, StructureBoundingBox totalBounds, StructureBoundingBox generatingBounds, int coordBaseMode) {
         if (!isLoaded) {
             Registry.LOG.info("NBTStructure is invalid");
             return false;
@@ -491,13 +488,11 @@ public class NBTStructure {
             for (int bz = minZ; bz <= maxZ; bz++) {
                 int rx = rotateX(bx, bz, coordBaseMode) + totalBounds.minX;
                 int rz = rotateZ(bx, bz, coordBaseMode) + totalBounds.minZ;
-                int oy = piece.conformToTerrain ? world.getTopSolidOrLiquidBlock(rx, rz) + piece.heightOffset
-                        : totalBounds.minY;
+                int oy = piece.conformToTerrain ? world.getTopSolidOrLiquidBlock(rx, rz) + piece.heightOffset : totalBounds.minY;
 
                 for (int by = 0; by < size.y; by++) {
                     BlockState state = blockArray[bx][by][bz];
-                    if (state == null)
-                        continue;
+                    if (state == null) continue;
 
                     int ry = by + oy;
 
@@ -530,19 +525,14 @@ public class NBTStructure {
         return new BlockPos(x, y, z);
     }
 
-    // NON-STANDARD, items are serialized with IDs, which will differ from world to
-    // world!
-    // So our fixed exporter adds an itemPalette, please don't hunt me down for
-    // fucking with the spec
+    // NON-STANDARD, items are serialized with IDs, which will differ from world to world!
+    // So our fixed exporter adds an itemPalette, please don't hunt me down for fucking with the spec
     private void relinkItems(HashMap<Short, Short> palette, NBTTagCompound nbt) {
         NBTTagList items = null;
-        if (nbt.hasKey("items"))
-            items = nbt.getTagList("items", NBT.TAG_COMPOUND);
-        if (nbt.hasKey("Items"))
-            items = nbt.getTagList("Items", NBT.TAG_COMPOUND);
+        if (nbt.hasKey("items")) items = nbt.getTagList("items", NBT.TAG_COMPOUND);
+        if (nbt.hasKey("Items")) items = nbt.getTagList("Items", NBT.TAG_COMPOUND);
 
-        if (items == null)
-            return;
+        if (items == null) return;
 
         for (int i = 0; i < items.tagCount(); i++) {
             NBTTagCompound item = items.getCompoundTagAt(i);
@@ -564,9 +554,8 @@ public class NBTStructure {
     }
 
     private int transformMeta(BlockDefinition definition, Map<Block, BlockSelector> blockTable, int coordBaseMode) {
-        if (blockTable != null && blockTable.containsKey(definition.block)) {
+        if (blockTable != null && blockTable.containsKey(definition.block))
             return blockTable.get(definition.block).getSelectedBlockMetaData();
-        }
 
         // Our shit
         if (definition.block instanceof INBTBlockTransformable)
@@ -576,80 +565,54 @@ public class NBTStructure {
             return definition.meta;
 
         // Vanilla shit
-        if (definition.block instanceof BlockStairs)
-            return INBTBlockTransformable.transformMetaStairs(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockRotatedPillar)
-            return INBTBlockTransformable.transformMetaPillar(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockDirectional)
-            return INBTBlockTransformable.transformMetaDirectional(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockTorch)
-            return INBTBlockTransformable.transformMetaTorch(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockButton)
-            return INBTBlockTransformable.transformMetaTorch(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockDoor)
-            return INBTBlockTransformable.transformMetaDoor(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockLever)
-            return INBTBlockTransformable.transformMetaLever(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockSign)
-            return INBTBlockTransformable.transformMetaSignLadder(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockLadder)
-            return INBTBlockTransformable.transformMetaSignLadder(definition.meta, coordBaseMode);
-        if (definition.block instanceof BlockTripWireHook)
-            return INBTBlockTransformable.transformMetaDirectional(definition.meta, coordBaseMode);
-        if (definition.block == Blocks.vine)
-            return INBTBlockTransformable.transformMetaVine(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockStairs)  return INBTBlockTransformable.transformMetaStairs(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockRotatedPillar) return INBTBlockTransformable.transformMetaPillar(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockDirectional) return INBTBlockTransformable.transformMetaDirectional(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockTorch) return INBTBlockTransformable.transformMetaTorch(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockButton) return INBTBlockTransformable.transformMetaTorch(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockDoor) return INBTBlockTransformable.transformMetaDoor(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockLever) return INBTBlockTransformable.transformMetaLever(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockSign) return INBTBlockTransformable.transformMetaSignLadder(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockLadder) return INBTBlockTransformable.transformMetaSignLadder(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockTripWireHook) return INBTBlockTransformable.transformMetaDirectional(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockVine) return INBTBlockTransformable.transformMetaVine(definition.meta, coordBaseMode);
+
         return definition.meta;
     }
 
     private int rotateX(int x, int z, int coordBaseMode) {
         switch (coordBaseMode) {
-        case 1:
-            return size.z - 1 - z;
-        case 2:
-            return size.x - 1 - x;
-        case 3:
-            return z;
-        default:
-            return x;
+        case 1: return size.z - 1 - z;
+        case 2: return size.x - 1 - x;
+        case 3: return z;
+        default: return x;
         }
     }
 
     private int rotateZ(int x, int z, int coordBaseMode) {
         switch (coordBaseMode) {
-        case 1:
-            return x;
-        case 2:
-            return size.z - 1 - z;
-        case 3:
-            return size.x - 1 - x;
-        default:
-            return z;
+        case 1: return x;
+        case 2: return size.z - 1 - z;
+        case 3: return size.x - 1 - x;
+        default: return z;
         }
     }
 
     private int unrotateX(int x, int z, int coordBaseMode) {
         switch (coordBaseMode) {
-        case 3:
-            return size.x - 1 - z;
-        case 2:
-            return size.x - 1 - x;
-        case 1:
-            return z;
-        default:
-            return x;
+        case 3: return size.x - 1 - z;
+        case 2: return size.x - 1 - x;
+        case 1: return z;
+        default: return x;
         }
     }
 
     private int unrotateZ(int x, int z, int coordBaseMode) {
         switch (coordBaseMode) {
-        case 3:
-            return x;
-        case 2:
-            return size.z - 1 - z;
-        case 1:
-            return size.z - 1 - x;
-        default:
-            return z;
+        case 3: return x;
+        case 2: return size.z - 1 - z;
+        case 1: return size.z - 1 - x;
+        default: return z;
         }
     }
 

@@ -16,6 +16,9 @@ public class Registry {
     public static final String MODID = "nbtlib";
     public static final Logger LOG = LogManager.getLogger(MODID);
 
+    @Mod.Instance(Registry.MODID)
+    public static Registry instance;
+
     @SidedProxy(clientSide = "net.mellow.nbtlib.ClientProxy", serverSide = "net.mellow.nbtlib.CommonProxy")
     public static CommonProxy proxy;
 

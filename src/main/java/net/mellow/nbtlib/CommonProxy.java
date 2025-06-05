@@ -6,13 +6,16 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.api.NBTStructure;
 import net.mellow.nbtlib.api.NBTStructure.JigsawPiece;
 import net.mellow.nbtlib.api.NBTStructure.JigsawPool;
 import net.mellow.nbtlib.api.NBTStructure.SpawnCondition;
 import net.mellow.nbtlib.block.ModBlocks;
+import net.mellow.nbtlib.gui.GuiHandler;
 import net.mellow.nbtlib.item.ModItems;
+import net.mellow.nbtlib.network.NetworkHandler;
 import net.minecraftforge.common.MinecraftForge;
 
 public class CommonProxy {
@@ -27,10 +30,12 @@ public class CommonProxy {
     }
 
     public void init(FMLInitializationEvent event) {
+        NetworkHandler.init();
+        NetworkRegistry.INSTANCE.registerGuiHandler(Registry.instance, new GuiHandler());
 
-		NBTWorldGenerator worldGenerator = new NBTWorldGenerator();
-		GameRegistry.registerWorldGenerator(worldGenerator, 1); //Ideally, move everything over from HbmWorldGen to NTMWorldGenerator
-		MinecraftForge.EVENT_BUS.register(worldGenerator);
+        NBTWorldGenerator worldGenerator = new NBTWorldGenerator();
+        GameRegistry.registerWorldGenerator(worldGenerator, 1);
+        MinecraftForge.EVENT_BUS.register(worldGenerator);
 
         NBTStructure.register();
 
