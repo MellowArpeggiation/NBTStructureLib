@@ -139,9 +139,9 @@ public class ItemStructureWand extends Item {
         stack.stackTagCompound.setIntArray("metas", collectionToIntArray(blocks, i -> ((BlockMeta) i).meta));
     }
 
-	private static int[] collectionToIntArray(Collection<? extends Object> in, ToIntFunction<? super Object> mapper) {
-		return Arrays.stream(in.toArray()).mapToInt(mapper).toArray();
-	}
+    private static int[] collectionToIntArray(Collection<? extends Object> in, ToIntFunction<? super Object> mapper) {
+        return Arrays.stream(in.toArray()).mapToInt(mapper).toArray();
+    }
 
     @Override
     public ItemStack onItemRightClick(ItemStack stack, World world, EntityPlayer player) {

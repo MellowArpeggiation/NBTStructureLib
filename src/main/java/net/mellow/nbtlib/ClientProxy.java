@@ -2,6 +2,7 @@ package net.mellow.nbtlib;
 
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import net.mellow.nbtlib.render.RenderBlockJigsaw;
 import net.mellow.nbtlib.render.RenderBlockReplace;
 
 public class ClientProxy extends CommonProxy {
@@ -18,6 +19,7 @@ public class ClientProxy extends CommonProxy {
 
     private void registerRendering() {
         RenderingRegistry.registerBlockHandler(new RenderBlockReplace());
+        RenderingRegistry.registerBlockHandler(new RenderBlockJigsaw());
     }
 
 }

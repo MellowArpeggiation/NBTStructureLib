@@ -11,37 +11,37 @@ import net.minecraft.world.World;
 
 public class BlockReplace extends Block {
 
-	public final Block exportAs;
+    public final Block exportAs;
 
-	protected BlockReplace(Block exportAs) {
-		super(Material.glass);
-		this.exportAs = exportAs;
-		setBlockBounds(1F/16F, 1F/16F, 1F/16F, 15F/16F, 15F/16F, 15F/16F);
-	}
+    protected BlockReplace(Block exportAs) {
+        super(Material.glass);
+        this.exportAs = exportAs;
+        setBlockBounds(1F/16F, 1F/16F, 1F/16F, 15F/16F, 15F/16F, 15F/16F);
+    }
 
-	@Override
-	public boolean isOpaqueCube() {
-		return false;
-	}
+    @Override
+    public boolean isOpaqueCube() {
+        return false;
+    }
 
-	@Override
-	public boolean renderAsNormalBlock() {
-		return false;
-	}
+    @Override
+    public boolean renderAsNormalBlock() {
+        return false;
+    }
 
-	@Override
-	public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
-		return null;
-	}
+    @Override
+    public AxisAlignedBB getCollisionBoundingBoxFromPool(World world, int x, int y, int z) {
+        return null;
+    }
 
-	@Override
-	public int getRenderType() {
-		return RenderBlockReplace.renderID;
-	}
+    @Override
+    public int getRenderType() {
+        return RenderBlockReplace.renderID;
+    }
 
-	@SideOnly(Side.CLIENT)
-	public boolean shouldSideBeRendered(IBlockAccess world, int x, int y, int z, int side) {
-		return world.getBlock(x, y, z) != this;
-	}
+    @SideOnly(Side.CLIENT)
+    public boolean shouldSideBeRendered(IBlockAccess world, int x, int y, int z, int side) {
+        return world.getBlock(x, y, z) != this;
+    }
 
 }

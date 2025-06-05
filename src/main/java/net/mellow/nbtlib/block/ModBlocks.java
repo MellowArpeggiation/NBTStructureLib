@@ -18,12 +18,14 @@ public class ModBlocks {
     private static void initBlocks() {
 
         structure_air = new BlockReplace(Blocks.air).setBlockName("structure_air").setBlockTextureName(Registry.MODID + ":structure_air");
+        structure_jigsaw = new BlockJigsaw().setBlockName("structure_jigsaw");
 
     }
 
     private static void registerBlocks() {
 
         register(structure_air);
+        register(structure_jigsaw);
 
     }
 
