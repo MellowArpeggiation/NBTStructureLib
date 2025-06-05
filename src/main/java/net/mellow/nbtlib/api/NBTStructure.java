@@ -12,6 +12,7 @@ import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.block.BlockMeta;
 import net.mellow.nbtlib.block.BlockPos;
+import net.mellow.nbtlib.block.BlockReplace;
 import net.mellow.nbtlib.block.ModBlocks;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
@@ -89,7 +90,7 @@ public class NBTStructure {
         }
     }
 
-    public static void registerStructure(SpawnCondition spawn, int[] dimensionIds) {
+    public static void registerStructure(int[] dimensionIds, SpawnCondition spawn) {
         for (int dimensionId : dimensionIds) {
             registerStructure(dimensionId, spawn);
         }
@@ -140,9 +141,10 @@ public class NBTStructure {
                     if (exclude.contains(block))
                         continue;
 
-                    // if (block.key instanceof BlockWand) {
-                    //     block.key = ((BlockWand) block.key).exportAs;
-                    // }
+                    // bock bock I'm a chicken
+                    if (block.block instanceof BlockReplace) {
+                        block.block = ((BlockReplace) block.block).exportAs;
+                    }
 
                     int paletteId = palette.size();
                     if (palette.containsKey(block)) {
@@ -306,12 +308,9 @@ public class NBTStructure {
 
                     // Load in connection points for jigsaws
                     if (blockState.definition.block == ModBlocks.structure_jigsaw) {
-                        if (toTopConnections == null)
-                            toTopConnections = new HashMap<>();
-                        if (toBottomConnections == null)
-                            toBottomConnections = new HashMap<>();
-                        if (toHorizontalConnections == null)
-                            toHorizontalConnections = new HashMap<>();
+                        if (toTopConnections == null) toTopConnections = new HashMap<>();
+                        if (toBottomConnections == null) toBottomConnections = new HashMap<>();
+                        if (toHorizontalConnections == null) toHorizontalConnections = new HashMap<>();
 
                         int selectionPriority = nbt.getInteger("selection");
                         int placementPriority = nbt.getInteger("placement");
@@ -391,19 +390,16 @@ public class NBTStructure {
 
         for (ItemPaletteEntry entry : itemPalette) {
             Item item = (Item) Item.itemRegistry.getObject(entry.name);
-
             worldItemPalette.put(entry.id, (short) Item.getIdFromItem(item));
         }
 
         return worldItemPalette;
     }
 
-    private TileEntity buildTileEntity(World world, Block block, HashMap<Short, Short> worldItemPalette,
-            NBTTagCompound nbt, int coordBaseMode) {
+    private TileEntity buildTileEntity(World world, Block block, HashMap<Short, Short> worldItemPalette, NBTTagCompound nbt, int coordBaseMode) {
         nbt = (NBTTagCompound) nbt.copy();
 
-        if (worldItemPalette != null)
-            relinkItems(worldItemPalette, nbt);
+        if (worldItemPalette != null) relinkItems(worldItemPalette, nbt);
 
         TileEntity te = TileEntity.createAndLoadEntity(nbt);
 
@@ -1078,8 +1074,7 @@ public class NBTStructure {
             int x = chunkX << 4;
             int z = chunkZ << 4;
 
-            JigsawPiece startPiece = spawn.structure != null ? spawn.structure
-                    : spawn.pools.get(spawn.startPool).get(rand);
+            JigsawPiece startPiece = spawn.structure != null ? spawn.structure : spawn.pools.get(spawn.startPool).get(rand);
 
             Component startComponent = new Component(spawn, startPiece, rand, x, z);
             startComponent.parent = this;
@@ -1121,8 +1116,7 @@ public class NBTStructure {
                             String fallback = spawn.pools.get(fromConnection.poolName).fallback;
 
                             if (fallback != null) {
-                                Component fallbackComponent = buildNextComponent(rand, spawn, spawn.pools.get(fallback),
-                                        fromComponent, fromConnection);
+                                Component fallbackComponent = buildNextComponent(rand, spawn, spawn.pools.get(fallback), fromComponent, fromConnection);
                                 addComponent(fallbackComponent, fromConnection.placementPriority);
                             }
 
@@ -1164,8 +1158,7 @@ public class NBTStructure {
             }
 
             if (Config.debugSpawning) {
-                Registry.LOG.info("[Debug] Spawning NBT structure with " + components.size() + " piece(s) at: "
-                        + chunkX * 16 + ", " + chunkZ * 16);
+                Registry.LOG.info("[Debug] Spawning NBT structure with " + components.size() + " piece(s) at: " + chunkX * 16 + ", " + chunkZ * 16);
                 String componentList = "[Debug] Components: ";
                 for (Object component : this.components) {
                     componentList += ((Component) component).piece.structure.name + " ";
@@ -1177,8 +1170,7 @@ public class NBTStructure {
         }
 
         private void addComponent(Component component, int placementPriority) {
-            if (component == null)
-                return;
+            if (component == null) return;
             components.add(component);
 
             component.parent = this;
@@ -1281,10 +1273,8 @@ public class NBTStructure {
             int x = chunkX;
             int z = chunkZ;
 
-            if (x < 0)
-                x -= Config.structureMaxChunks - 1;
-            if (z < 0)
-                z -= Config.structureMaxChunks - 1;
+            if (x < 0) x -= Config.structureMaxChunks - 1;
+            if (z < 0) z -= Config.structureMaxChunks - 1;
 
             x /= Config.structureMaxChunks;
             z /= Config.structureMaxChunks;
@@ -1295,13 +1285,11 @@ public class NBTStructure {
             z += rand.nextInt(Config.structureMaxChunks - Config.structureMinChunks);
 
             if (chunkX == x && chunkZ == z) {
-                BiomeGenBase biome = this.worldObj.getWorldChunkManager().getBiomeGenAt(chunkX * 16 + 8,
-                        chunkZ * 16 + 8);
+                BiomeGenBase biome = this.worldObj.getWorldChunkManager().getBiomeGenAt(chunkX * 16 + 8, chunkZ * 16 + 8);
 
                 nextSpawn = findSpawn(biome);
 
-                return nextSpawn != null
-                        && (nextSpawn.pools != null || nextSpawn.structure != null);
+                return nextSpawn != null && (nextSpawn.pools != null || nextSpawn.structure != null);
             }
 
             return false;
@@ -1317,8 +1305,7 @@ public class NBTStructure {
 
             for (int i = 0; i < 256; i++) {
                 SpawnCondition spawn = spawnList.get(rand.nextInt(spawnList.size()));
-                if (spawn.isValid(biome))
-                    return spawn;
+                if (spawn.isValid(biome)) return spawn;
             }
 
             return null;
