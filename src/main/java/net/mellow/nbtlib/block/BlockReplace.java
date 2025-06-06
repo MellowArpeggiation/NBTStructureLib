@@ -78,7 +78,6 @@ public class BlockReplace extends Block {
 
     @Override
     public int getRenderType() {
-        if(RenderBlockReplace.renderingInventory) return 0;
         return RenderBlockReplace.renderID;
     }
 

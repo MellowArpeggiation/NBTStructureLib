@@ -6,6 +6,6 @@ import net.minecraft.nbt.NBTTagCompound;
 public interface IControlReceiver {
 
     public boolean hasPermission(EntityPlayer player);
-    public void receiveControl(EntityPlayer player, NBTTagCompound data);
+    public void receiveControl(EntityPlayer player, NBTTagCompound nbt);
 
 }

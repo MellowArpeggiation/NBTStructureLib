@@ -1,5 +1,6 @@
-tile.structure_air.name=Structure Block (Air)
+tile.structure_air.name=Structure Air Block
 tile.structure_jigsaw.name=Structure Jigsaw Block
+tile.structure_loot.name=Structure Loot Block
 
 item.structure_wand.name=Structure Wand
 item.structure_wand.desc="Replication breeds decadence"$(Saves an area defined by two right-clicks,$adds a block to the blacklist by crouch right-clicking!)

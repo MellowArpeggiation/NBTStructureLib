@@ -4,13 +4,13 @@ import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.client.registry.ISimpleBlockRenderingHandler;
 import cpw.mods.fml.client.registry.RenderingRegistry;
-import net.mellow.nbtlib.block.BlockJigsaw;
+import net.mellow.nbtlib.block.BlockSideRotation;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.world.IBlockAccess;
 
-public class RenderBlockJigsaw implements ISimpleBlockRenderingHandler {
+public class RenderBlockSideRotation implements ISimpleBlockRenderingHandler {
 
     @Override
     public void renderInventoryBlock(Block block, int metadata, int modelId, RenderBlocks renderer) {
@@ -24,24 +24,14 @@ public class RenderBlockJigsaw implements ISimpleBlockRenderingHandler {
         tessellator.startDrawingQuads();
         tessellator.setNormal(0.0F, -1.0F, 0.0F);
         renderer.renderFaceYNeg(block, 0.0D, 0.0D, 0.0D, renderer.getBlockIconFromSideAndMetadata(block, 0, metadata));
-        tessellator.draw();
-        tessellator.startDrawingQuads();
         tessellator.setNormal(0.0F, 1.0F, 0.0F);
         renderer.renderFaceYPos(block, 0.0D, 0.0D, 0.0D, renderer.getBlockIconFromSideAndMetadata(block, 1, metadata));
-        tessellator.draw();
-        tessellator.startDrawingQuads();
         tessellator.setNormal(0.0F, 0.0F, -1.0F);
         renderer.renderFaceZNeg(block, 0.0D, 0.0D, 0.0D, renderer.getBlockIconFromSideAndMetadata(block, 2, metadata));
-        tessellator.draw();
-        tessellator.startDrawingQuads();
         tessellator.setNormal(0.0F, 0.0F, 1.0F);
         renderer.renderFaceZPos(block, 0.0D, 0.0D, 0.0D, renderer.getBlockIconFromSideAndMetadata(block, 3, metadata));
-        tessellator.draw();
-        tessellator.startDrawingQuads();
         tessellator.setNormal(-1.0F, 0.0F, 0.0F);
         renderer.renderFaceXNeg(block, 0.0D, 0.0D, 0.0D, renderer.getBlockIconFromSideAndMetadata(block, 4, metadata));
-        tessellator.draw();
-        tessellator.startDrawingQuads();
         tessellator.setNormal(1.0F, 0.0F, 0.0F);
         renderer.renderFaceXPos(block, 0.0D, 0.0D, 0.0D, renderer.getBlockIconFromSideAndMetadata(block, 5, metadata));
         tessellator.draw();
@@ -56,21 +46,21 @@ public class RenderBlockJigsaw implements ISimpleBlockRenderingHandler {
 
         tessellator.setBrightness(block.getMixedBrightnessForBlock(world, x, y, z));
 
-        if (!(block instanceof BlockJigsaw)) {
+        if (!(block instanceof BlockSideRotation)) {
             renderer.renderStandardBlock(block, x, y, z);
             return true;
         }
 
-        BlockJigsaw jigsaw = (BlockJigsaw) block;
+        BlockSideRotation rot = (BlockSideRotation) block;
 
         // I'm almost entirely convinced that MCP mistranslated these properties because north/south and west/east are fucking SWAPPED
         // YEP, they fucking did, god fucking damn it. I manually figured out the correct side for each uv face property to resolve YAYY
-        renderer.uvRotateBottom = jigsaw.getRotationFromSide(world, x, y, z, 0);
-        renderer.uvRotateTop = jigsaw.getRotationFromSide(world, x, y, z, 1);
-        renderer.uvRotateNorth = jigsaw.getRotationFromSide(world, x, y, z, 5);
-        renderer.uvRotateSouth = jigsaw.getRotationFromSide(world, x, y, z, 4);
-        renderer.uvRotateWest = jigsaw.getRotationFromSide(world, x, y, z, 2);
-        renderer.uvRotateEast = jigsaw.getRotationFromSide(world, x, y, z, 3);
+        renderer.uvRotateBottom = rot.getRotationFromSide(world, x, y, z, 0);
+        renderer.uvRotateTop = rot.getRotationFromSide(world, x, y, z, 1);
+        renderer.uvRotateNorth = rot.getRotationFromSide(world, x, y, z, 5);
+        renderer.uvRotateSouth = rot.getRotationFromSide(world, x, y, z, 4);
+        renderer.uvRotateWest = rot.getRotationFromSide(world, x, y, z, 2);
+        renderer.uvRotateEast = rot.getRotationFromSide(world, x, y, z, 3);
 
         renderer.setRenderBounds(0.0, 0.0, 0.0, 1.0, 1.0, 1.0);
         renderer.renderStandardBlock(block, x, y, z);
