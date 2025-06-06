@@ -90,6 +90,7 @@ public class NBTStructure {
         }
     }
 
+    // Register a structure for multiple dimensions simultaneously
     public static void registerStructure(int[] dimensionIds, SpawnCondition spawn) {
         for (int dimensionId : dimensionIds) {
             registerStructure(dimensionId, spawn);
@@ -101,6 +102,7 @@ public class NBTStructure {
         registerNullWeight(dimensionId, weight, null);
     }
 
+    // Add a chance for nothing to spawn at a given valid spawn location, for specific biomes
     public static void registerNullWeight(int dimensionId, int weight, Predicate<BiomeGenBase> predicate) {
         SpawnCondition spawn = new SpawnCondition() {
             {

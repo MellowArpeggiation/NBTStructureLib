@@ -5,7 +5,7 @@ import net.minecraft.world.World;
 public interface INBTTileEntityTransformable {
 
     /**
-     * Like INBTTransformable but for TileEntities
+     * Like INBTBlockTransformable but for TileEntities
      */
 
     // Allows for the TE to modify itself when spawned in an NBT structure
