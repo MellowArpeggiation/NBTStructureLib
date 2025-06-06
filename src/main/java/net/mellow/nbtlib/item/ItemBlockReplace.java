@@ -7,11 +7,10 @@ import net.minecraft.block.Block;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.world.World;
 
-public class ItemBlockReplace extends ItemBlock {
+public class ItemBlockReplace extends ItemBlockTooltip {
 
     public ItemBlockReplace(Block block) {
         super(block);

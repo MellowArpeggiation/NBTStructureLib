@@ -5,6 +5,7 @@ import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.block.BlockJigsaw.TileEntityJigsaw;
 import net.mellow.nbtlib.block.BlockLoot.TileEntityLoot;
 import net.mellow.nbtlib.item.ItemBlockReplace;
+import net.mellow.nbtlib.item.ItemBlockTooltip;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
@@ -17,11 +18,16 @@ public class ModBlocks {
         registerTileEntities();
     }
 
+    // coming soon, replacing the wand
+    // public static Block structure_block;
+
     public static Block structure_air;
     public static Block structure_jigsaw;
     public static Block structure_loot;
 
     private static void initBlocks() {
+
+        // structure_block = new BlockStructure().setBlockName("structure_block");
 
         structure_air = new BlockReplace(Blocks.air).setBlockName("structure_air").setBlockTextureName(Registry.MODID + ":structure_air");
         structure_jigsaw = new BlockJigsaw().setBlockName("structure_jigsaw");
@@ -30,6 +36,8 @@ public class ModBlocks {
     }
 
     private static void registerBlocks() {
+
+        // register(structure_block);
 
         register(structure_air, ItemBlockReplace.class);
         register(structure_jigsaw);
@@ -45,7 +53,7 @@ public class ModBlocks {
     }
 
     private static void register(Block block) {
-        GameRegistry.registerBlock(block, block.getUnlocalizedName());
+        GameRegistry.registerBlock(block, ItemBlockTooltip.class, block.getUnlocalizedName());
     }
 
     private static void register(Block block, Class<? extends ItemBlock> itemClass) {

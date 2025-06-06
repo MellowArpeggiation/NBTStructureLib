@@ -58,10 +58,10 @@ public class BlockLoot extends BlockSideRotation {
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister iconRegister) {
-        this.blockIcon = iconRegister.registerIcon(Registry.MODID + ":structure_loot");
-        this.iconTop = iconRegister.registerIcon(Registry.MODID + ":structure_loot_top");
-        this.iconSide = iconRegister.registerIcon(Registry.MODID + ":structure_loot_back");
-        this.iconBack = iconRegister.registerIcon(Registry.MODID + ":structure_loot_back");
+        blockIcon = iconRegister.registerIcon(Registry.MODID + ":structure_loot");
+        iconTop = iconRegister.registerIcon(Registry.MODID + ":structure_loot_top");
+        iconSide = iconRegister.registerIcon(Registry.MODID + ":structure_loot_back");
+        iconBack = iconRegister.registerIcon(Registry.MODID + ":structure_loot_back");
     }
 
     @Override

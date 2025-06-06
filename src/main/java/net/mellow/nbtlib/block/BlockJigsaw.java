@@ -46,10 +46,10 @@ public class BlockJigsaw extends BlockSideRotation {
     @Override
     @SideOnly(Side.CLIENT)
     public void registerBlockIcons(IIconRegister iconRegister) {
-        this.blockIcon = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw");
-        this.iconTop = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw_top");
-        this.iconSide = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw_side");
-        this.iconBack = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw_back");
+        blockIcon = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw");
+        iconTop = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw_top");
+        iconSide = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw_side");
+        iconBack = iconRegister.registerIcon(Registry.MODID + ":structure_jigsaw_back");
     }
 
     @Override
