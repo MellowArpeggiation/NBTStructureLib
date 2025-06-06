@@ -3,8 +3,10 @@ package net.mellow.nbtlib.block;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.block.BlockJigsaw.TileEntityJigsaw;
+import net.mellow.nbtlib.item.ItemBlockReplace;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
+import net.minecraft.item.ItemBlock;
 
 public class ModBlocks {
 
@@ -26,7 +28,7 @@ public class ModBlocks {
 
     private static void registerBlocks() {
 
-        register(structure_air);
+        register(structure_air, ItemBlockReplace.class);
         register(structure_jigsaw);
 
     }
@@ -39,6 +41,10 @@ public class ModBlocks {
 
     private static void register(Block block) {
         GameRegistry.registerBlock(block, block.getUnlocalizedName());
+    }
+
+    private static void register(Block block, Class<? extends ItemBlock> itemClass) {
+        GameRegistry.registerBlock(block, itemClass, block.getUnlocalizedName());
     }
 
 }
