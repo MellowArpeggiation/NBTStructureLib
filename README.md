@@ -20,7 +20,7 @@ Before we save our structure, we'll need to add blocks that indicate to the stru
 
 In pursuit of this, two placeholder blocks are available for you to place in your structures:
 
-* **Structure Air Block** - This wand block will replace any block it finds with air, underground structures will need air placed or else they'll be vitrified with rock. Smart placement of air can create cool effects (say, placing air everywhere except the bottom-most blocks to make a nuclear sub placed in water be half flooded).
+* **Structure Air Block** - This block will replace any block it finds with air, underground structures will need air placed or else they'll be vitrified with rock. Smart placement of air can create cool effects (say, placing air everywhere except the bottom-most blocks to make a nuclear sub placed in water be half flooded).
 * **Structure Loot Block** - Normal chests will always spawn with exactly the items placed in them, this block will instead randomly generate its contents from `GenChestHook` categories (which can be added to). The arrow indicates the facing direction of the inventory block when generated. These blocks can be set to generate any type of single block inventory (chests, etc) by using the desired block on them directly.
 
 
@@ -88,8 +88,8 @@ If a structure is defined as conforming to terrain, every single column in the s
 
 
 ## Building a jigsaw structure
-Earlier we mentioned two wand blocks used for defining structure information for the generator to use. However, there is another:
-* Structure Wand Block (Jigsaw) - When the generator finds one of these in a structure, it'll grab another `.nbt` structure from a defined pool of structures and attach it directly, based on the connecting arrow direction. The system will continuously add new pieces until it connects all available jigsaw blocks or it hits either the piece limit (sizeLimit) or horizontal range limit (rangeLimit).
+Earlier we mentioned two structure blocks used for defining structure information for the generator to use. However, there is another:
+* **Structure Jigsaw Block** - When the generator finds one of these in a structure, it'll grab another `.nbt` structure from a defined pool of structures and attach it directly, based on the connecting arrow direction. The system will continuously add new pieces until it connects all available jigsaw blocks or it hits either the piece limit (sizeLimit) or horizontal range limit (rangeLimit).
 
 In order to define the pools that must be used in the structure, instead of defining a single structure, we instead define pools, and the first piece that the structure places down will be pulled from the pool named in startPool.
 
