@@ -4,7 +4,7 @@ import java.util.Random;
 
 import cpw.mods.fml.common.IWorldGenerator;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
-import net.mellow.nbtlib.api.NBTStructure;
+import net.mellow.nbtlib.api.NBTGeneration;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.event.terraingen.InitMapGenEvent.EventType;
@@ -14,7 +14,7 @@ import net.minecraftforge.event.world.WorldEvent;
 
 public class NBTWorldGenerator implements IWorldGenerator {
 
-    private NBTStructure.GenStructure nbtGen = new NBTStructure.GenStructure();
+    private NBTGeneration.GenStructure nbtGen = new NBTGeneration.GenStructure();
 
     private final Random rand = new Random(); //A central random, used to cleanly generate our stuff without affecting vanilla or modded seeds.
     private boolean hasPopulationEvent = false; // Does the given chunkGenerator have a population event? If not (flatlands), default to using generate.
@@ -22,7 +22,7 @@ public class NBTWorldGenerator implements IWorldGenerator {
     /** Inits all MapGen upon the loading of a new world. Hopefully clears out structureMaps and structureData when a different world is loaded. */
     @SubscribeEvent
     public void onLoad(WorldEvent.Load event) {
-        nbtGen = (NBTStructure.GenStructure) TerrainGen.getModdedMapGen(new NBTStructure.GenStructure(), EventType.CUSTOM);
+        nbtGen = (NBTGeneration.GenStructure) TerrainGen.getModdedMapGen(new NBTGeneration.GenStructure(), EventType.CUSTOM);
 
         hasPopulationEvent = false;
     }

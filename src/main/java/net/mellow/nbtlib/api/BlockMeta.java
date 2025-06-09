@@ -1,11 +1,20 @@
-package net.mellow.nbtlib.block;
+package net.mellow.nbtlib.api;
 
 import net.minecraft.block.Block;
+import net.minecraft.init.Blocks;
 
 public class BlockMeta {
 
-    public Block block;
-    public int meta;
+    public final Block block;
+    public final int meta;
+
+    public BlockMeta(String name, int meta) {
+        Block block = Block.getBlockFromName(name);
+        if (block == null) block = Blocks.air;
+
+        this.block = block;
+        this.meta = meta;
+    }
 
     public BlockMeta(Block block, int meta) {
         this.block = block;

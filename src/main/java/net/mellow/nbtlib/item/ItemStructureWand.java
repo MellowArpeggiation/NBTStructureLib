@@ -12,8 +12,8 @@ import java.util.function.ToIntFunction;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.mellow.nbtlib.api.BlockMeta;
 import net.mellow.nbtlib.api.NBTStructure;
-import net.mellow.nbtlib.block.BlockMeta;
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
@@ -98,7 +98,7 @@ public class ItemStructureWand extends Item {
 
                 String filename = "structure_" + dateFormat.format(new Date()).toString() + ".nbt";
 
-                NBTStructure.saveArea(filename, world, x, y, z, px, py, pz, blocks);
+                NBTStructure.quickSaveArea(filename, world, x, y, z, px, py, pz, blocks);
 
                 if (world.isRemote)
                     player.addChatMessage(new ChatComponentText("Structure saved to: .minecraft/structures/" + filename));

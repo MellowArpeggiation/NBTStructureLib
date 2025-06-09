@@ -8,10 +8,10 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.registry.GameRegistry;
-import net.mellow.nbtlib.api.NBTStructure;
-import net.mellow.nbtlib.api.NBTStructure.JigsawPiece;
-import net.mellow.nbtlib.api.NBTStructure.JigsawPool;
-import net.mellow.nbtlib.api.NBTStructure.SpawnCondition;
+import net.mellow.nbtlib.api.JigsawPiece;
+import net.mellow.nbtlib.api.JigsawPool;
+import net.mellow.nbtlib.api.NBTGeneration;
+import net.mellow.nbtlib.api.SpawnCondition;
 import net.mellow.nbtlib.block.ModBlocks;
 import net.mellow.nbtlib.gui.GuiHandler;
 import net.mellow.nbtlib.item.ModItems;
@@ -37,10 +37,10 @@ public class CommonProxy {
         GameRegistry.registerWorldGenerator(worldGenerator, 1);
         MinecraftForge.EVENT_BUS.register(worldGenerator);
 
-        NBTStructure.register();
+        NBTGeneration.register();
 
         if (Config.spawnTestStructure) {
-            NBTStructure.registerStructure(0, new SpawnCondition() {{
+            NBTGeneration.registerStructure(0, new SpawnCondition() {{
                 startPool = "start";
                 pools = new HashMap<String, JigsawPool>() {{
                     put("start", new JigsawPool() {{

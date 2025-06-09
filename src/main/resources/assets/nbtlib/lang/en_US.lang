@@ -3,7 +3,7 @@ tile.structure_block.desc=Defines an area for saving/loading structures
 tile.structure_air.name=Structure Air Block
 tile.structure_air.desc=Defines where air should be placed when the containing structure generates
 tile.structure_jigsaw.name=Structure Jigsaw Block
-tile.structure_jigsaw.desc=Connects multiple structures together
+tile.structure_jigsaw.desc=Connects multiple structures together$The block it turns into on generation can be changed by placing a block on it
 tile.structure_loot.name=Structure Loot Block
 tile.structure_loot.desc=Spawns a chest (or any block with an inventory)$The block can be changed by placing an inventory containing block on it
 
