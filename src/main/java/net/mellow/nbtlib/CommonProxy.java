@@ -41,6 +41,8 @@ public class CommonProxy {
 
         if (Config.spawnTestStructure) {
             NBTGeneration.registerStructure(0, new SpawnCondition() {{
+                checkCoordinates = (check) -> check.coords.chunkXPos == 0 && check.coords.chunkZPos == 0;
+                minHeight = 63;
                 startPool = "start";
                 pools = new HashMap<String, JigsawPool>() {{
                     put("start", new JigsawPool() {{

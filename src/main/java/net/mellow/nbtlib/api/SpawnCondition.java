@@ -1,10 +1,12 @@
 package net.mellow.nbtlib.api;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.function.Predicate;
 
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.api.JigsawPiece.WeightedJigsawPiece;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
@@ -13,6 +15,10 @@ public class SpawnCondition {
     // If defined, will spawn a single jigsaw piece, for single nbt structures
     public JigsawPiece structure;
 
+    // If defined, will override regular spawn location checking, for placing at specific coordinates or with special rules
+    public Predicate<WorldCoordinate> checkCoordinates;
+
+    // Determine whether the current biome is valid for spawning
     public Predicate<BiomeGenBase> canSpawn;
     public int spawnWeight = 1;
 
@@ -67,6 +73,24 @@ public class SpawnCondition {
 
             oz += highestWidth + padding;
         }
+    }
+
+    /**
+     * Provides information about the currently structure gen chunk,
+     * use the included random for consistent seeding!
+     */
+    public static class WorldCoordinate {
+
+        public final World world;
+        public final ChunkCoordIntPair coords;
+        public final Random rand;
+
+        protected WorldCoordinate(World world, ChunkCoordIntPair coords, Random rand) {
+            this.world = world;
+            this.coords = coords;
+            this.rand = rand;
+        }
+
     }
 
 }

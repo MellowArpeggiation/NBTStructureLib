@@ -12,10 +12,12 @@ import java.util.function.Predicate;
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.NBTStructure.JigsawConnection;
+import net.mellow.nbtlib.api.SpawnCondition.WorldCoordinate;
 import net.mellow.nbtlib.block.BlockPos;
 import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
+import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.chunk.IChunkProvider;
@@ -31,7 +33,8 @@ import net.minecraftforge.common.util.ForgeDirection;
  */
 public class NBTGeneration {
 
-    protected static Map<Integer, List<SpawnCondition>> weightedMap = new HashMap<>();
+    private static Map<Integer, List<SpawnCondition>> weightedMap = new HashMap<>();
+    private static Map<Integer, List<SpawnCondition>> customSpawnMap = new HashMap<>();
 
     public static void register() {
         MapGenStructureIO.registerStructure(Start.class, "NBTStructures");
@@ -40,6 +43,12 @@ public class NBTGeneration {
 
     // Register a new structure for a given dimension
     public static void registerStructure(int dimensionId, SpawnCondition spawn) {
+        if(spawn.checkCoordinates != null) {
+            List<SpawnCondition> spawnList = customSpawnMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
+            spawnList.add(spawn);
+            return;
+        }
+
         List<SpawnCondition> weightedList = weightedMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
         for (int i = 0; i < spawn.spawnWeight; i++) {
             weightedList.add(spawn);
@@ -451,6 +460,19 @@ public class NBTGeneration {
 
         @Override
         protected boolean canSpawnStructureAtCoords(int chunkX, int chunkZ) {
+            // attempt to spawn with custom chunk coordinate rules
+            if (customSpawnMap.containsKey(worldObj.provider.dimensionId)) {
+                WorldCoordinate coords = new WorldCoordinate(worldObj, new ChunkCoordIntPair(chunkX, chunkZ), rand);
+
+                List<SpawnCondition> spawnList = customSpawnMap.get(worldObj.provider.dimensionId);
+                for (SpawnCondition spawn : spawnList) {
+                    if ((spawn.pools != null || spawn.structure != null) && spawn.checkCoordinates.test(coords)) {
+                        nextSpawn = spawn;
+                        return true;
+                    }
+                }
+            }
+
             if (!weightedMap.containsKey(worldObj.provider.dimensionId))
                 return false;
 
