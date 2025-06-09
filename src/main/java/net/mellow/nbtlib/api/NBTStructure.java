@@ -29,15 +29,10 @@ import net.minecraft.world.gen.structure.StructureComponent.BlockSelector;
 import net.minecraftforge.common.util.ForgeDirection;
 import net.minecraftforge.common.util.Constants.NBT;
 
+/**
+ * Handles placing blocks into the world based on an .nbt file (modern MC format)
+ */
 public class NBTStructure {
-
-    /**
-     * Now with structure support!
-     *
-     * the type of structure to generate is saved into the Component, meaning this
-     * can generate all sorts of different structures, without having to define and
-     * register each structure manually
-     */
 
     protected String name;
 

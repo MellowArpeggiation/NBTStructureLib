@@ -26,6 +26,9 @@ import net.minecraft.world.gen.structure.StructureComponent;
 import net.minecraft.world.gen.structure.StructureStart;
 import net.minecraftforge.common.util.ForgeDirection;
 
+/**
+ * Handles generating structures in the world, based on current dimension and biome
+ */
 public class NBTGeneration {
 
     protected static Map<Integer, List<SpawnCondition>> weightedMap = new HashMap<>();

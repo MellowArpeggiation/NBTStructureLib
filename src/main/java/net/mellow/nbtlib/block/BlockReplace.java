@@ -15,12 +15,11 @@ import net.minecraft.util.Vec3;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
+/**
+ * This block is only visible and interactable while holding the block in your hand
+ * making for invisible air placeholders when not editing the air directly!
+ */
 public class BlockReplace extends Block {
-
-    /**
-     * This block is only visible and interactable while holding the block in your hand
-     * making for invisible air placeholders when not editing the air directly!
-     */
 
     public final Block exportAs;
     public IIcon itemIcon;
