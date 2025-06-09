@@ -192,8 +192,7 @@ public class NBTStructure {
                 for (int z = oz; z <= Math.max(z1, z2); z++) {
                     BlockMeta block = new BlockMeta(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
 
-                    if (exclude.contains(block))
-                        continue;
+                    if (exclude.contains(block)) continue;
 
                     // bock bock I'm a chicken
                     if (block.block instanceof BlockReplace) {

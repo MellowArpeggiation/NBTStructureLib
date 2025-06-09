@@ -36,8 +36,7 @@ public class SpawnCondition {
 
     // Can this spawn in the current biome
     protected boolean isValid(BiomeGenBase biome) {
-        if (canSpawn == null)
-            return true;
+        if (canSpawn == null) return true;
         return canSpawn.test(biome);
     }
 
@@ -49,8 +48,7 @@ public class SpawnCondition {
     // Make sure structure debug is enabled, or it will no-op
     // Do not use in generation
     public void buildAll(World world, int x, int y, int z) {
-        if (!Config.debugStructures)
-            return;
+        if (!Config.debugStructures) return;
 
         int padding = 5;
         int oz = 0;

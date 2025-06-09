@@ -23,7 +23,7 @@ public class TextureReplace extends TextureAtlasSprite {
     @Override
     public void updateAnimation() {
         boolean shouldRender = shouldRender(block);
-        if(shouldRender != wasRendering) {
+        if (shouldRender != wasRendering) {
             TextureUtil.uploadTextureMipmap((int[][])this.framesTextureData.get(shouldRender ? 0 : 1), this.width, this.height, this.originX, this.originY, false, false);
             wasRendering = shouldRender;
         }
@@ -32,10 +32,10 @@ public class TextureReplace extends TextureAtlasSprite {
     public static boolean shouldRender(Block block) {
         Minecraft mc = Minecraft.getMinecraft();
 
-        if(mc.theWorld == null || mc.thePlayer == null) return true;
+        if (mc.theWorld == null || mc.thePlayer == null) return true;
 
         ItemStack held = mc.thePlayer.getHeldItem();
-        if(held == null) return false;
+        if (held == null) return false;
 
         if (!(held.getItem() instanceof ItemBlock)) return false;
         return ((ItemBlock) held.getItem()).field_150939_a == block;

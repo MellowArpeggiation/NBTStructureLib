@@ -44,7 +44,7 @@ public class BlockReplace extends Block {
         TextureMap map = (TextureMap) reg;
 
         TextureAtlasSprite sprite = new TextureReplace(getTextureName(), this);
-        if(map.setTextureEntry(getTextureName(), sprite)) {
+        if (map.setTextureEntry(getTextureName(), sprite)) {
             blockIcon = sprite;
         }
     }
@@ -52,7 +52,7 @@ public class BlockReplace extends Block {
     // We can tweak raycasting on the client only and still get desired results on the server!
     @Override
     public MovingObjectPosition collisionRayTrace(World world, int x, int y, int z, Vec3 startVec, Vec3 endVec) {
-        if(world.isRemote && !TextureReplace.shouldRender(this)) return null;
+        if (world.isRemote && !TextureReplace.shouldRender(this)) return null;
         return super.collisionRayTrace(world, x, y, z, startVec, endVec);
     }
 
