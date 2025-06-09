@@ -42,7 +42,7 @@ public static final NBTStructure my_structure = new NBTStructure(new ResourceLoc
 Now that you have a structure loading in, you'll want to indicate to the world generator to spawn it into specifc dimensions/biomes. The example below will spawn `my_structure` in dimension 0 (Overworld). All fields here are set to their defaults except for `canSpawn` and `structure`. Your spawning defintion should look like the below:
 
 ```java
-NBTStructure.registerStructure(0, new SpawnCondition() {{
+NBTGeneration.registerStructure(0, new SpawnCondition() {{
 
 	// This is the structure to spawn, the optional number at the end defines the y-offset of the piece.
 	// If you had, say, a concrete floor, you'd put in -1 to sink the floor into the ground.
@@ -94,13 +94,13 @@ Earlier we mentioned two structure blocks used for defining structure informatio
 In order to define the pools that must be used in the structure, instead of defining a single structure, we instead define pools, and the first piece that the structure places down will be pulled from the pool named in startPool.
 
 ```java
-NBTStructure.registerStructure(0, new SpawnCondition() {{
+NBTGeneration.registerStructure(0, new SpawnCondition() {{
 
 	// Which of the below pools should be used to select our first piece.
 	startPool = "start";
 
 	// The pools from which structure pieces are pulled from to connect to a given jigsaw.
-	pools = new HashMap<String, NBTStructure.JigsawPool>() {{
+	pools = new HashMap<String, JigsawPool>() {{
 
 		// Our starting pool, this one has just one structure in it, so we'll always generate from the same piece.
 		put("start", new JigsawPool() { {
