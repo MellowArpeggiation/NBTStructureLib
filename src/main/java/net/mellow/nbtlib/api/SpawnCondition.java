@@ -58,7 +58,8 @@ public class SpawnCondition {
     }
 
     protected JigsawPool getPool(String name) {
-        return pools.get(name).clone();
+        JigsawPool pool = pools.get(name);
+        return pool != null ? pool.clone() : null;
     }
 
     // Builds all of the pools into neat rows and columns, for editing and debugging!

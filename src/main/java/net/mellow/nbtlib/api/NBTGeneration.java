@@ -344,6 +344,10 @@ public class NBTGeneration {
                         }
 
                         JigsawPool nextPool = spawn.getPool(fromConnection.poolName);
+						if (nextPool == null) {
+							Registry.LOG.warn("[Jigsaw] Jigsaw block points to invalid pool: " + fromConnection.poolName);
+							continue;
+						}
 
                         Component nextComponent = null;
 
@@ -411,12 +415,16 @@ public class NBTGeneration {
 
         private Component buildNextComponent(Random rand, SpawnCondition spawn, JigsawPool pool, Component fromComponent, JigsawConnection fromConnection) {
             JigsawPiece nextPiece = pool.get(rand);
-            if (nextPiece == null)
+            if (nextPiece == null) {
+                Registry.LOG.warn("[Jigsaw] Pool returned null piece: " + fromConnection.poolName);
                 return null;
+            }
 
             List<JigsawConnection> connectionPool = getConnectionPool(nextPiece, fromConnection);
-            if (connectionPool == null)
+            if (connectionPool == null || connectionPool.isEmpty()) {
+                Registry.LOG.warn("[Jigsaw] No valid connections for: " + fromConnection.targetName + " - in piece: " + nextPiece.name);
                 return null;
+            }
 
             JigsawConnection toConnection = connectionPool.get(rand.nextInt(connectionPool.size()));
 
