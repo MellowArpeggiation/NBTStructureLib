@@ -528,6 +528,7 @@ public class NBTStructure {
         if (definition.block instanceof BlockLadder) return INBTBlockTransformable.transformMetaSignLadder(definition.meta, coordBaseMode);
         if (definition.block instanceof BlockTripWireHook) return INBTBlockTransformable.transformMetaDirectional(definition.meta, coordBaseMode);
         if (definition.block instanceof BlockVine) return INBTBlockTransformable.transformMetaVine(definition.meta, coordBaseMode);
+		if (definition.block instanceof BlockTrapDoor) return INBTBlockTransformable.transformMetaTrapdoor(definition.meta, coordBaseMode);
 
         return definition.meta;
     }

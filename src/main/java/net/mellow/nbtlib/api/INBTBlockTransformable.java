@@ -72,6 +72,30 @@ public interface INBTBlockTransformable {
         return meta;
     }
 
+	// what in the FUCK mojangles
+	// same as stairs but 1 & 3 flipped
+	public static int transformMetaTrapdoor(int meta, int coordBaseMode) {
+		if(coordBaseMode == 0) return meta;
+		switch(coordBaseMode) {
+		case 1: //West
+			if((meta & 3) < 2)
+				meta = meta ^ 3;
+			else
+				meta = meta ^ 2;
+			break;
+		case 2: //North
+			meta = meta ^ 1; //Flip first bit
+			break;
+		case 3: //East
+			if((meta & 3) < 2)
+				meta = meta ^ 2;
+			else
+				meta = meta ^ 3;
+			break;
+		}
+		return meta;
+	}
+
     public static int transformMetaPillar(int meta, int coordBaseMode) {
         if (coordBaseMode == 0 || coordBaseMode == 2) return meta;
         int type = meta & 3;
