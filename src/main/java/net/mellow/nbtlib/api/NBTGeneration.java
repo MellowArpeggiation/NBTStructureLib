@@ -540,7 +540,7 @@ public class NBTGeneration {
 
             x /= Config.structureMaxChunks;
             z /= Config.structureMaxChunks;
-            rand.setSeed((long) x * 341873128712L + (long) z * 132897987541L + this.worldObj.getWorldInfo().getSeed() + (long) 996996996 - worldObj.provider.dimensionId);
+            rand.setSeed((long) x * 341873128712L + (long) z * 132897987541L + this.worldObj.getWorldInfo().getSeed() + (long) 994994994 - worldObj.provider.dimensionId);
             x *= Config.structureMaxChunks;
             z *= Config.structureMaxChunks;
             x += rand.nextInt(Config.structureMaxChunks - Config.structureMinChunks);
