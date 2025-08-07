@@ -5,6 +5,7 @@ import java.util.Random;
 import cpw.mods.fml.common.IWorldGenerator;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import net.mellow.nbtlib.api.NBTGeneration;
+import net.mellow.nbtlib.api.SpawnCondition;
 import net.minecraft.world.World;
 import net.minecraft.world.chunk.IChunkProvider;
 import net.minecraftforge.event.terraingen.InitMapGenEvent.EventType;
@@ -64,6 +65,14 @@ public class NBTWorldGenerator implements IWorldGenerator {
         setRandomSeed(world, chunkX, chunkZ); //Reset the random seed to compensate
 
         nbtGen.generateStructures(world, rand, chunkProvider, chunkX, chunkZ);
+    }
+
+    public SpawnCondition getStructureAt(World world, int chunkX, int chunkZ) {
+        if (!world.getWorldInfo().isMapFeaturesEnabled()) return null;
+
+        setRandomSeed(world, chunkX, chunkZ);
+
+        return nbtGen.getStructureAt(world, chunkX, chunkZ);
     }
 
 }

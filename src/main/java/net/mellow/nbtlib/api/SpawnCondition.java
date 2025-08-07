@@ -5,12 +5,15 @@ import java.util.Random;
 import java.util.function.Predicate;
 
 import net.mellow.nbtlib.Config;
+import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.JigsawPiece.WeightedJigsawPiece;
 import net.minecraft.world.ChunkCoordIntPair;
 import net.minecraft.world.World;
 import net.minecraft.world.biome.BiomeGenBase;
 
 public class SpawnCondition {
+
+    public final String name;
 
     // If defined, will spawn a single jigsaw piece, for single nbt structures
     public JigsawPiece structure;
@@ -39,6 +42,14 @@ public class SpawnCondition {
     // * Bunkers that sit underneath the ground
     public int minHeight = 1;
     public int maxHeight = 128;
+
+    protected SpawnCondition() {
+        name = null;
+    }
+
+    public SpawnCondition(String name) {
+        this.name = Registry.addPrefix(name);
+    }
 
     // Can this spawn in the current biome
     protected boolean isValid(BiomeGenBase biome) {

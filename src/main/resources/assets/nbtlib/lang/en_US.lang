@@ -1,3 +1,8 @@
+commands.locate.run_as_player=This command should be run by a player!
+commands.locate.no_match=No structures with that name!
+commands.locate.none_found=No structures found nearby!
+commands.locate.success.coordinates=Structure %s found at %d, %d
+
 tile.structure_block.name=Structure Block
 tile.structure_block.desc=Defines an area for saving/loading structures
 tile.structure_air.name=Structure Air Block

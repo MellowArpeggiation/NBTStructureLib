@@ -3,6 +3,7 @@ package net.mellow.nbtlib.api;
 import java.util.HashMap;
 import java.util.Map;
 
+import net.mellow.nbtlib.Registry;
 import net.minecraft.block.Block;
 import net.minecraft.world.gen.structure.StructureComponent.BlockSelector;
 
@@ -25,8 +26,10 @@ public class JigsawPiece {
     }
 
     public JigsawPiece(String name, NBTStructure structure, int heightOffset) {
-        if (name == null)
+        if (name == null || "".equals(name))
             throw new IllegalStateException("A severe error has occurred in NBTStructure! A jigsaw piece has been registered without a valid name!");
+
+        name = Registry.addPrefix(name);
 
         if (jigsawMap.containsKey(name))
             throw new IllegalStateException("A severe error has occurred in NBTStructure! A jigsaw piece has been registered with the same name as another: " + name);

@@ -517,7 +517,7 @@ public class NBTStructure {
             return definition.meta;
 
         // Vanilla shit
-        if (definition.block instanceof BlockStairs)  return INBTBlockTransformable.transformMetaStairs(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockStairs) return INBTBlockTransformable.transformMetaStairs(definition.meta, coordBaseMode);
         if (definition.block instanceof BlockRotatedPillar) return INBTBlockTransformable.transformMetaPillar(definition.meta, coordBaseMode);
         if (definition.block instanceof BlockDirectional) return INBTBlockTransformable.transformMetaDirectional(definition.meta, coordBaseMode);
         if (definition.block instanceof BlockTorch) return INBTBlockTransformable.transformMetaTorch(definition.meta, coordBaseMode);

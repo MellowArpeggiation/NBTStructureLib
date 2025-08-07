@@ -33,6 +33,8 @@ import net.minecraftforge.common.util.ForgeDirection;
  */
 public class NBTGeneration {
 
+    private static Map<String, SpawnCondition> namedMap = new HashMap<>();
+
     private static Map<Integer, List<SpawnCondition>> weightedMap = new HashMap<>();
     private static Map<Integer, List<SpawnCondition>> customSpawnMap = new HashMap<>();
 
@@ -43,6 +45,11 @@ public class NBTGeneration {
 
     // Register a new structure for a given dimension
     public static void registerStructure(int dimensionId, SpawnCondition spawn) {
+        if(namedMap.containsKey(spawn.name))
+            throw new IllegalStateException("A severe error has occurred in NBTStructure! A SpawnCondition has been registered with the same name as another: " + spawn.name);
+
+        namedMap.put(spawn.name, spawn);
+
         if(spawn.checkCoordinates != null) {
             List<SpawnCondition> spawnList = customSpawnMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
             spawnList.add(spawn);
@@ -80,6 +87,26 @@ public class NBTGeneration {
         for (int i = 0; i < spawn.spawnWeight; i++) {
             weightedList.add(spawn);
         }
+    }
+
+    // Presents a list of all structures registered (so far)
+    public static List<String> listStructures() {
+        List<String> names = new ArrayList<>(namedMap.keySet());
+        names.sort((a, b) -> a.compareTo(b));
+        return names;
+    }
+
+    // Fetches a registered structure by mod prefix and name.
+    // If one is not found, will simply return null.
+    public static SpawnCondition getStructure(String prefix, String name) {
+        return namedMap.get(prefix + ":" + name);
+    }
+
+    // Fetches a registered structure by name, you must add the mod ID prefix you wish to fetch from, eg.
+    //   `mod:example_structure`
+    // If one is not found, will simply return null.
+    public static SpawnCondition getStructure(String name) {
+        return namedMap.get(name);
     }
 
     public static class Component extends StructureComponent {
@@ -130,7 +157,7 @@ public class NBTGeneration {
         // Save to NBT
         @Override
         protected void func_143012_a(NBTTagCompound nbt) {
-            nbt.setString("piece", piece.name);
+            nbt.setString("piece", piece != null ? piece.name : "NULL");
             nbt.setInteger("min", minHeight);
             nbt.setInteger("max", maxHeight);
             nbt.setBoolean("hasHeight", heightUpdated);
@@ -460,6 +487,28 @@ public class NBTGeneration {
 
         @Override
         protected boolean canSpawnStructureAtCoords(int chunkX, int chunkZ) {
+            nextSpawn = getSpawnAtCoords(chunkX, chunkZ);
+            return nextSpawn != null;
+        }
+
+        public SpawnCondition getStructureAt(World world, int chunkX, int chunkZ) {
+            // make sure the random is in the correct state
+            this.worldObj = world;
+            this.rand.setSeed(world.getSeed());
+            long l = this.rand.nextLong();
+            long i1 = this.rand.nextLong();
+
+            long l1 = (long)chunkX * l;
+            long i2 = (long)chunkZ * i1;
+            this.rand.setSeed(l1 ^ i2 ^ world.getSeed());
+
+            // random nextInt call just before `canSpawnStructureAtCoords`, no, I don't know why Mojang added that
+            this.rand.nextInt();
+
+            return getSpawnAtCoords(chunkX, chunkZ);
+        }
+
+        private SpawnCondition getSpawnAtCoords(int chunkX, int chunkZ) {
             // attempt to spawn with custom chunk coordinate rules
             if (customSpawnMap.containsKey(worldObj.provider.dimensionId)) {
                 WorldCoordinate coords = new WorldCoordinate(worldObj, new ChunkCoordIntPair(chunkX, chunkZ), rand);
@@ -467,14 +516,13 @@ public class NBTGeneration {
                 List<SpawnCondition> spawnList = customSpawnMap.get(worldObj.provider.dimensionId);
                 for (SpawnCondition spawn : spawnList) {
                     if ((spawn.pools != null || spawn.structure != null) && spawn.checkCoordinates.test(coords)) {
-                        nextSpawn = spawn;
-                        return true;
+                        return spawn;
                     }
                 }
             }
 
             if (!weightedMap.containsKey(worldObj.provider.dimensionId))
-                return false;
+                return null;
 
             int x = chunkX;
             int z = chunkZ;
@@ -493,12 +541,13 @@ public class NBTGeneration {
             if (chunkX == x && chunkZ == z) {
                 BiomeGenBase biome = this.worldObj.getWorldChunkManager().getBiomeGenAt(chunkX * 16 + 8, chunkZ * 16 + 8);
 
-                nextSpawn = findSpawn(biome);
+                SpawnCondition spawn = findSpawn(biome);
 
-                return nextSpawn != null && (nextSpawn.pools != null || nextSpawn.structure != null);
+                if(spawn != null && (spawn.pools != null || spawn.structure != null))
+                    return spawn;
             }
 
-            return false;
+            return null;
         }
 
         @Override

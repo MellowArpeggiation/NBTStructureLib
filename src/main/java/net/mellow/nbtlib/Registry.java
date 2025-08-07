@@ -3,7 +3,9 @@ package net.mellow.nbtlib;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
+import cpw.mods.fml.common.ModContainer;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -40,6 +42,26 @@ public class Registry {
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         proxy.serverStarting(event);
+    }
+
+    // For registering named objects
+    public static String addPrefix(String name) {
+        int index = name.lastIndexOf(':');
+        String oldPrefix = index == -1 ? "" : name.substring(0, index);
+        String prefix;
+        ModContainer mc = Loader.instance().activeModContainer();
+
+        if (mc != null) {
+            prefix = mc.getModId();
+        } else {
+            prefix = "minecraft";
+        }
+
+        if (!oldPrefix.equals(prefix)) {
+            name = prefix + ":" + name;
+        }
+
+        return name;
     }
 
 }

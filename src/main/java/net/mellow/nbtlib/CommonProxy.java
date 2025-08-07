@@ -13,12 +13,16 @@ import net.mellow.nbtlib.api.JigsawPool;
 import net.mellow.nbtlib.api.NBTGeneration;
 import net.mellow.nbtlib.api.SpawnCondition;
 import net.mellow.nbtlib.block.ModBlocks;
+import net.mellow.nbtlib.command.CommandLocate;
 import net.mellow.nbtlib.gui.GuiHandler;
 import net.mellow.nbtlib.item.ModItems;
 import net.mellow.nbtlib.network.NetworkHandler;
+import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
 public class CommonProxy {
+
+    private NBTWorldGenerator worldGenerator;
 
     public void preInit(FMLPreInitializationEvent event) {
         Config.synchronizeConfiguration(event.getSuggestedConfigurationFile());
@@ -33,14 +37,14 @@ public class CommonProxy {
         NetworkHandler.init();
         NetworkRegistry.INSTANCE.registerGuiHandler(Registry.instance, new GuiHandler());
 
-        NBTWorldGenerator worldGenerator = new NBTWorldGenerator();
+        worldGenerator = new NBTWorldGenerator();
         GameRegistry.registerWorldGenerator(worldGenerator, 1);
         MinecraftForge.EVENT_BUS.register(worldGenerator);
 
         NBTGeneration.register();
 
         if (Config.spawnTestStructure) {
-            NBTGeneration.registerStructure(0, new SpawnCondition() {{
+            NBTGeneration.registerStructure(0, new SpawnCondition("example_structure") {{
                 checkCoordinates = (check) -> check.coords.chunkXPos == 0 && check.coords.chunkZPos == 0;
                 minHeight = 63;
                 startPool = "start";
@@ -59,6 +63,12 @@ public class CommonProxy {
 
     public void postInit(FMLPostInitializationEvent event) {}
 
-    public void serverStarting(FMLServerStartingEvent event) {}
+    public void serverStarting(FMLServerStartingEvent event) {
+        event.registerServerCommand(new CommandLocate());
+    }
+
+    public SpawnCondition getStructureAt(World world, int chunkX, int chunkZ) {
+        return worldGenerator.getStructureAt(world, chunkX, chunkZ);
+    }
 
 }
