@@ -45,7 +45,7 @@ public class NBTGeneration {
 
     // Register a new structure for a given dimension
     public static void registerStructure(int dimensionId, SpawnCondition spawn) {
-        if(namedMap.containsKey(spawn.name))
+        if(namedMap.containsKey(spawn.name) && namedMap.get(spawn.name) != spawn)
             throw new IllegalStateException("A severe error has occurred in NBTStructure! A SpawnCondition has been registered with the same name as another: " + spawn.name);
 
         namedMap.put(spawn.name, spawn);
