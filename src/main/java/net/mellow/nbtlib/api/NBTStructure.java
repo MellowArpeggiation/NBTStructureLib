@@ -11,6 +11,7 @@ import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.block.BlockPos;
 import net.mellow.nbtlib.block.BlockReplace;
+import net.mellow.nbtlib.block.FloorPos;
 import net.mellow.nbtlib.block.ModBlocks;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
@@ -105,7 +106,7 @@ public class NBTStructure {
     }
 
     // Builds a structure piece within a given bounds (will not cascade, assuming the bounds provided are valid!)
-    public boolean build(World world, JigsawPiece piece, StructureBoundingBox totalBounds, StructureBoundingBox generatingBounds, int coordBaseMode) {
+    public boolean build(World world, JigsawPiece piece, StructureBoundingBox totalBounds, StructureBoundingBox generatingBounds, int coordBaseMode, LinkedHashMap<FloorPos, Integer> floorplan) {
         if (!isLoaded) {
             Registry.LOG.info("NBTStructure is invalid");
             return false;
@@ -143,9 +144,13 @@ public class NBTStructure {
                 int rz = rotateZ(bx, bz, coordBaseMode) + totalBounds.minZ;
                 int oy = piece.conformToTerrain ? world.getTopSolidOrLiquidBlock(rx, rz) + piece.heightOffset : totalBounds.minY;
 
+                boolean hasColumn = false;
+
                 for (int by = 0; by < size.y; by++) {
                     BlockState state = blockArray[bx][by][bz];
                     if (state == null) continue;
+
+                    hasColumn = true;
 
                     int ry = by + oy;
 
@@ -158,6 +163,13 @@ public class NBTStructure {
                         TileEntity te = buildTileEntity(world, block, worldItemPalette, state.nbt, coordBaseMode);
                         world.setTileEntity(rx, ry, rz, te);
                     }
+                }
+
+                if (hasColumn && !piece.conformToTerrain) {
+                    FloorPos floor = new FloorPos(rx, rz);
+                    Integer ry = floorplan.get(floor);
+                    if (ry == null || ry > oy - 1)
+                        floorplan.put(floor, oy - 1);
                 }
             }
         }

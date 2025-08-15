@@ -3,9 +3,11 @@ package net.mellow.nbtlib.api;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Random;
 import java.util.function.Predicate;
 
@@ -14,6 +16,7 @@ import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.NBTStructure.JigsawConnection;
 import net.mellow.nbtlib.api.SpawnCondition.WorldCoordinate;
 import net.mellow.nbtlib.block.BlockPos;
+import net.mellow.nbtlib.block.FloorPos;
 import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
@@ -41,6 +44,7 @@ public class NBTGeneration {
     public static void register() {
         MapGenStructureIO.registerStructure(Start.class, "NBTStructures");
         MapGenStructureIO.func_143031_a(Component.class, "NBTComponents");
+        MapGenStructureIO.func_143031_a(SupportComponent.class, "NBTSupportComponents");
     }
 
     // Register a new structure for a given dimension
@@ -173,22 +177,22 @@ public class NBTGeneration {
         }
 
         @Override
-        public boolean addComponentParts(World world, Random rand, StructureBoundingBox box) {
+        public boolean addComponentParts(World world, Random rand, StructureBoundingBox generatingBox) {
             if (piece == null)
                 return false;
 
             // now we're in the world, update minY/maxY
             if (!piece.conformToTerrain && !heightUpdated) {
-                int y = MathHelper.clamp_int(getAverageHeight(world, box) + piece.heightOffset, minHeight, maxHeight);
+                int y = MathHelper.clamp_int(getAverageHeight(world, generatingBox), minHeight, maxHeight) + piece.heightOffset;
 
-                if (!piece.alignToTerrain && parent != null) {
+                if (!piece.alignToTerrain) {
                     parent.offsetYHeight(y);
                 } else {
                     offsetYHeight(y);
                 }
             }
 
-            return piece.structure.build(world, piece, boundingBox, box, coordBaseMode);
+            return piece.structure.build(world, piece, boundingBox, generatingBox, coordBaseMode, parent.floorplan);
         }
 
         public void offsetYHeight(int y) {
@@ -284,12 +288,48 @@ public class NBTGeneration {
 
     }
 
+    public static class SupportComponent extends StructureComponent {
+
+        SupportComponentBase support;
+
+        public SupportComponent() {}
+
+        public SupportComponent(SupportComponentBase support, StructureBoundingBox boundingBox) {
+            this.support = support;
+            this.boundingBox = boundingBox;
+        }
+
+        // Save to NBT
+        @Override
+        protected void func_143012_a(NBTTagCompound nbt) {
+
+        }
+
+        // Load from NBT
+        @Override
+        protected void func_143011_b(NBTTagCompound nbt) {
+
+        }
+
+        @Override
+        public boolean addComponentParts(World world, Random rand, StructureBoundingBox generatingBox) {
+            support.generateSupport(world, generatingBox);
+            return true;
+        }
+
+    }
+
     public static class Start extends StructureStart {
+
+        private String name;
+        protected LinkedHashMap<FloorPos, Integer> floorplan = new LinkedHashMap<>();
 
         public Start() {}
 
         public Start(World world, Random rand, SpawnCondition spawn, int chunkX, int chunkZ) {
             super(chunkX, chunkZ);
+
+            name = spawn.name;
 
             int x = chunkX << 4;
             int z = chunkZ << 4;
@@ -385,12 +425,26 @@ public class NBTGeneration {
                 Registry.LOG.info("[Debug] Spawning NBT structure with " + components.size() + " piece(s) at: " + chunkX * 16 + ", " + chunkZ * 16);
                 String componentList = "[Debug] Components: ";
                 for (Object component : this.components) {
+                    // if(!(component instanceof Component)) continue;
                     componentList += ((Component) component).piece.structure.name + " ";
                 }
                 Registry.LOG.info(componentList);
             }
 
             updateBoundingBox();
+
+            if (spawn.platform != null) {
+                try {
+                    SupportComponentBase gen = spawn.platform.newInstance();
+                    gen.init(floorplan, boundingBox);
+
+                    SupportComponent component = new SupportComponent(gen, boundingBox);
+                    components.add(component);
+
+                } catch (InstantiationException | IllegalAccessException e) {
+                    Registry.LOG.warn("Failed to generate structure support platform.");
+                }
+            }
         }
 
         private void addComponent(Component component, int placementPriority) {
@@ -458,16 +512,55 @@ public class NBTGeneration {
             return Math.max(Math.abs(x - (func_143019_e() << 4)), Math.abs(z - (func_143018_f() << 4)));
         }
 
-        // post loading, update parent reference for loaded components
+        // Save to NBT
+        @Override
+        public void func_143022_a(NBTTagCompound nbt) {
+            nbt.setString("name", name);
+
+            int[] positions = new int[floorplan.size() * 3];
+            int i = 0;
+            for (Entry<FloorPos, Integer> pos : floorplan.entrySet()) {
+                positions[i++] = pos.getKey().x;
+                positions[i++] = pos.getValue();
+                positions[i++] = pos.getKey().z;
+            }
+
+            nbt.setIntArray("floorplan", positions);
+        }
+
+        // Load from NBT & update parent reference for loaded components
         @Override
         public void func_143017_b(NBTTagCompound nbt) {
+            name = nbt.getString("name");
+            SpawnCondition structure = getStructure(name);
+
+            int[] positions = nbt.getIntArray("floorplan");
+            for (int i = 0; i < positions.length; i += 3) {
+                floorplan.put(new FloorPos(positions[i], positions[i + 2]), positions[i + 1]);
+            }
+
+            SupportComponentBase mapGen = null;
+            if (structure != null) {
+                try {
+                    mapGen = structure.platform.newInstance();
+                    mapGen.init(floorplan, boundingBox);
+                } catch (InstantiationException | IllegalAccessException e) {
+                    Registry.LOG.warn("Failed to generate structure support platform.");
+                }
+            }
+
             for (Object o : components) {
-                ((Component) o).parent = this;
+                if (o instanceof Component) {
+                    ((Component) o).parent = this;
+                } else { // SupportComponent
+                    ((SupportComponent) o).support = mapGen;
+                }
             }
         }
 
         public void offsetYHeight(int y) {
             for (Object o : components) {
+                if (!(o instanceof Component)) continue;
                 Component component = (Component) o;
                 if (component.heightUpdated || component.piece.conformToTerrain || component.piece.alignToTerrain)
                     continue;

@@ -16,6 +16,7 @@ import net.mellow.nbtlib.block.ModBlocks;
 import net.mellow.nbtlib.command.CommandLocate;
 import net.mellow.nbtlib.gui.GuiHandler;
 import net.mellow.nbtlib.item.ModItems;
+import net.mellow.nbtlib.mapgen.SupportBasic;
 import net.mellow.nbtlib.network.NetworkHandler;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -48,6 +49,7 @@ public class CommonProxy {
                 checkCoordinates = (check) -> check.coords.chunkXPos == 0 && check.coords.chunkZPos == 0;
                 minHeight = 63;
                 startPool = "start";
+                platform = SupportBasic.class;
                 pools = new HashMap<String, JigsawPool>() {{
                     put("start", new JigsawPool() {{
                         add(new JigsawPiece("example_structure_core", StructureManager.test_jigsaw_core), 1);
