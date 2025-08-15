@@ -1,4 +1,3 @@
-commands.locate.run_as_player=This command should be run by a player!
 commands.locate.no_match=No structures with that name!
 commands.locate.none_found=No structures found nearby!
 commands.locate.success.coordinates=Structure %s found at %d, %d

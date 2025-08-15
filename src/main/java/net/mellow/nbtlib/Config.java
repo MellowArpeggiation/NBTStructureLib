@@ -22,6 +22,9 @@ public class Config {
         debugSpawning = configuration.getBoolean("debugSpawning", Configuration.CATEGORY_GENERAL, debugSpawning, "Should we log where structures have generated?");
         debugStructures = configuration.getBoolean("debugStructures", Configuration.CATEGORY_GENERAL, debugStructures, "Should structures generate exactly as they are in the structure file, without replacements?");
 
+        structureMinChunks = configuration.getInt("structureMinChunks", Configuration.CATEGORY_GENERAL, structureMinChunks, 1, 256, "Minimum distance between generated structures in chunks");
+        structureMaxChunks = configuration.getInt("structureMaxChunks", Configuration.CATEGORY_GENERAL, structureMaxChunks, 1, 256, "Maximum distance between generated structures in chunks");
+
         if (configuration.hasChanged()) {
             configuration.save();
         }
