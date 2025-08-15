@@ -79,7 +79,7 @@ public abstract class BlockSideRotation extends BlockContainer implements INBTBl
     // 0 1 3 2 becomes 0 2 3 1
     // I want to smoke that swedish kush because it clearly makes you fucking stupid
     public static int topToBottom(int topRotation) {
-        switch(topRotation) {
+        switch (topRotation) {
         case 1: return 2;
         case 2: return 1;
         default: return topRotation;
@@ -87,7 +87,7 @@ public abstract class BlockSideRotation extends BlockContainer implements INBTBl
     }
 
     public static boolean isOpposite(int from, int to) {
-        switch(from) {
+        switch (from) {
         case 0: return to == 1;
         case 1: return to == 0;
         case 2: return to == 3;

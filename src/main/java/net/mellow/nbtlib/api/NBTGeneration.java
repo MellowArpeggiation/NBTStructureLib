@@ -45,12 +45,12 @@ public class NBTGeneration {
 
     // Register a new structure for a given dimension
     public static void registerStructure(int dimensionId, SpawnCondition spawn) {
-        if(namedMap.containsKey(spawn.name) && namedMap.get(spawn.name) != spawn)
+        if (namedMap.containsKey(spawn.name) && namedMap.get(spawn.name) != spawn)
             throw new IllegalStateException("A severe error has occurred in NBTStructure! A SpawnCondition has been registered with the same name as another: " + spawn.name);
 
         namedMap.put(spawn.name, spawn);
 
-        if(spawn.checkCoordinates != null) {
+        if (spawn.checkCoordinates != null) {
             List<SpawnCondition> spawnList = customSpawnMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
             spawnList.add(spawn);
             return;
@@ -551,7 +551,7 @@ public class NBTGeneration {
 
                 SpawnCondition spawn = findSpawn(biome);
 
-                if(spawn != null && (spawn.pools != null || spawn.structure != null))
+                if (spawn != null && (spawn.pools != null || spawn.structure != null))
                     return spawn;
             }
 

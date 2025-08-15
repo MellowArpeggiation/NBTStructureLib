@@ -37,18 +37,18 @@ public class CommandLocate extends CommandBase {
 
     @Override
     public void processCommand(ICommandSender sender, String[] args) {
-        if(!(sender instanceof EntityPlayer))
+        if (!(sender instanceof EntityPlayer))
             throw new PlayerNotFoundException();
 
-        if(args.length == 0)
+        if (args.length == 0)
             throw new WrongUsageException(getCommandUsage(sender), new Object[0]);
 
-        if(args[0].equals("structure")) {
+        if (args[0].equals("structure")) {
             EntityPlayer player = (EntityPlayer) sender;
 
             SpawnCondition structure = NBTGeneration.getStructure(args[1]);
 
-            if(structure == null) {
+            if (structure == null) {
                 ChatComponentTranslation message = new ChatComponentTranslation("commands.locate.no_match");
                 message.getChatStyle().setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(message);
@@ -60,7 +60,7 @@ public class CommandLocate extends CommandBase {
 
             ChunkCoordIntPair pos = getNearestLocationTo(structure, player.worldObj, chunkX, chunkZ);
 
-            if(pos == null) {
+            if (pos == null) {
                 ChatComponentTranslation message = new ChatComponentTranslation("commands.locate.none_found");
                 message.getChatStyle().setColor(EnumChatFormatting.RED);
                 sender.addChatMessage(message);
@@ -76,20 +76,20 @@ public class CommandLocate extends CommandBase {
     }
 
     private ChunkCoordIntPair getNearestLocationTo(SpawnCondition spawn, World world, int chunkX, int chunkZ) {
-        if(Registry.proxy.getStructureAt(world, chunkX, chunkZ) == spawn)
+        if (Registry.proxy.getStructureAt(world, chunkX, chunkZ) == spawn)
             return new ChunkCoordIntPair(chunkX, chunkZ);
 
-        for(int radius = 1; radius < MAX_DISTANCE; radius++) {
-            for(int x = chunkX - radius; x <= chunkX + radius; x++) {
-                if(Registry.proxy.getStructureAt(world, x, chunkZ - radius) == spawn)
+        for (int radius = 1; radius < MAX_DISTANCE; radius++) {
+            for (int x = chunkX - radius; x <= chunkX + radius; x++) {
+                if (Registry.proxy.getStructureAt(world, x, chunkZ - radius) == spawn)
                     return new ChunkCoordIntPair(x, chunkZ - radius);
-                if(Registry.proxy.getStructureAt(world, x, chunkZ + radius) == spawn)
+                if (Registry.proxy.getStructureAt(world, x, chunkZ + radius) == spawn)
                     return new ChunkCoordIntPair(x, chunkZ + radius);
             }
-            for(int z = chunkZ - radius; z <= chunkZ + radius; z++) {
-                if(Registry.proxy.getStructureAt(world, chunkX - radius, z) == spawn)
+            for (int z = chunkZ - radius; z <= chunkZ + radius; z++) {
+                if (Registry.proxy.getStructureAt(world, chunkX - radius, z) == spawn)
                     return new ChunkCoordIntPair(chunkX - radius, z);
-                if(Registry.proxy.getStructureAt(world, chunkX + radius, z) == spawn)
+                if (Registry.proxy.getStructureAt(world, chunkX + radius, z) == spawn)
                     return new ChunkCoordIntPair(chunkX + radius, z);
             }
         }
@@ -99,13 +99,13 @@ public class CommandLocate extends CommandBase {
 
     @Override
     public List<String> addTabCompletionOptions(ICommandSender sender, String[] args) {
-        if(args.length < 1)
+        if (args.length < 1)
             return Collections.emptyList();
 
-        if(args.length == 1)
+        if (args.length == 1)
             return getListOfStringsMatchingLastWord(args, "structure");
 
-        if(args.length == 2) {
+        if (args.length == 2) {
             List<String> structures = NBTGeneration.listStructures();
             return getListOfStringsMatchingLastWord(args, structures.toArray(new String[structures.size()]));
         }

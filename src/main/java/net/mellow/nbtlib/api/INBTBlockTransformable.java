@@ -52,7 +52,7 @@ public interface INBTBlockTransformable {
 
     public static int transformMetaStairs(int meta, int coordBaseMode) {
         if (coordBaseMode == 0) return meta;
-        switch(coordBaseMode) {
+        switch (coordBaseMode) {
         case 1: //West
             if ((meta & 3) < 2) //Flip second bit for E/W
                 meta = meta ^ 2;
@@ -75,10 +75,10 @@ public interface INBTBlockTransformable {
 	// what in the FUCK mojangles
 	// same as stairs but 1 & 3 flipped
 	public static int transformMetaTrapdoor(int meta, int coordBaseMode) {
-		if(coordBaseMode == 0) return meta;
-		switch(coordBaseMode) {
+		if (coordBaseMode == 0) return meta;
+		switch (coordBaseMode) {
 		case 1: //West
-			if((meta & 3) < 2)
+			if ((meta & 3) < 2)
 				meta = meta ^ 3;
 			else
 				meta = meta ^ 2;
@@ -87,7 +87,7 @@ public interface INBTBlockTransformable {
 			meta = meta ^ 1; //Flip first bit
 			break;
 		case 3: //East
-			if((meta & 3) < 2)
+			if ((meta & 3) < 2)
 				meta = meta ^ 2;
 			else
 				meta = meta ^ 3;
@@ -112,7 +112,7 @@ public interface INBTBlockTransformable {
         int rot = meta & 3;
         int other = meta & 12;
 
-        switch(coordBaseMode) {
+        switch (coordBaseMode) {
         default: //S
             break;
         case 1: //W
@@ -164,12 +164,12 @@ public interface INBTBlockTransformable {
     public static int transformMetaLever(int meta, int coordBaseMode) {
         if (coordBaseMode == 0) return meta;
         if (meta <= 0 || meta >= 7) { //levers suck ass
-            switch(coordBaseMode) {
+            switch (coordBaseMode) {
             case 1: case 3: //west / east
                 meta ^= 0b111;
             }
         } else if (meta >= 5) {
-            switch(coordBaseMode) {
+            switch (coordBaseMode) {
             case 1: case 3: //west / east
                 meta = (meta + 1) % 2 + 5;
             }
