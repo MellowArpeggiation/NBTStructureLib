@@ -14,7 +14,6 @@ import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.NBTStructure.JigsawConnection;
 import net.mellow.nbtlib.api.SpawnCondition.WorldCoordinate;
 import net.mellow.nbtlib.block.BlockPos;
-import net.minecraft.block.Block;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.MathHelper;
 import net.minecraft.world.ChunkCoordIntPair;
