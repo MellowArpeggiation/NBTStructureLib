@@ -12,6 +12,8 @@ import net.mellow.nbtlib.api.JigsawPiece;
 import net.mellow.nbtlib.api.JigsawPool;
 import net.mellow.nbtlib.api.NBTGeneration;
 import net.mellow.nbtlib.api.SpawnCondition;
+import net.mellow.nbtlib.api.selector.BrickSelector;
+import net.mellow.nbtlib.api.selector.StoneBrickSelector;
 import net.mellow.nbtlib.block.ModBlocks;
 import net.mellow.nbtlib.command.CommandLocate;
 import net.mellow.nbtlib.gui.GuiHandler;
@@ -50,11 +52,17 @@ public class CommonProxy {
                 startPool = "start";
                 pools = new HashMap<String, JigsawPool>() {{
                     put("start", new JigsawPool() {{
-                        add(new JigsawPiece("example_structure_core", StructureManager.test_jigsaw_core), 1);
+                        add(new JigsawPiece("example_structure_core", StructureManager.test_jigsaw_core) {{
+                            platform = new StoneBrickSelector();
+                        }}, 1);
                     }});
                     put("default", new JigsawPool() {{
-                        add(new JigsawPiece("example_structure_junction", StructureManager.test_jigsaw_junction), 1);
-                        add(new JigsawPiece("example_structure_hall", StructureManager.test_jigsaw_hall), 1);
+                        add(new JigsawPiece("example_structure_junction", StructureManager.test_jigsaw_junction) {{
+                            platform = new StoneBrickSelector();
+                        }}, 1);
+                        add(new JigsawPiece("example_structure_hall", StructureManager.test_jigsaw_hall) {{
+                            platform = new BrickSelector();
+                        }}, 1);
                     }});
                 }};
             }});

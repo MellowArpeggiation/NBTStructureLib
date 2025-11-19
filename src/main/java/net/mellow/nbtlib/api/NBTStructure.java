@@ -31,6 +31,13 @@ import net.minecraftforge.common.util.Constants.NBT;
 
 /**
  * Handles placing blocks into the world based on an .nbt file (modern MC format)
+ *
+ * Use this class to load in structures from a `ResourceLocation` like below, make sure not to
+ * load from a client only class!
+ *
+ * public static final NBTStructure DungeonCore = new NBTStructure(new ResourceLocation(Registry.MODID, "structures/dungeon_core.nbt"))
+ *
+ * Generally you don't want to call the build methods manually, register your structures using `NBTGeneration` instead!
  */
 public class NBTStructure {
 
@@ -90,6 +97,8 @@ public class NBTStructure {
 
                     int ry = by + y;
 
+                    if (ry < 1) continue;
+
                     Block block = transformBlock(state.definition, null, world.rand);
                     int meta = transformMeta(state.definition, null, coordBaseMode);
 
@@ -143,11 +152,15 @@ public class NBTStructure {
                 int rz = rotateZ(bx, bz, coordBaseMode) + totalBounds.minZ;
                 int oy = piece.conformToTerrain ? world.getTopSolidOrLiquidBlock(rx, rz) + piece.heightOffset : totalBounds.minY;
 
+                boolean hasBase = false;
+
                 for (int by = 0; by < size.y; by++) {
                     BlockState state = blockArray[bx][by][bz];
                     if (state == null) continue;
 
                     int ry = by + oy;
+
+                    if (ry < 1) continue;
 
                     Block block = transformBlock(state.definition, piece.blockTable, world.rand);
                     int meta = transformMeta(state.definition, piece.blockTable, coordBaseMode);
@@ -157,6 +170,16 @@ public class NBTStructure {
                     if (state.nbt != null) {
                         TileEntity te = buildTileEntity(world, block, worldItemPalette, state.nbt, coordBaseMode);
                         world.setTileEntity(rx, ry, rz, te);
+                    }
+
+                    if (by == 0 && piece.platform != null && !block.getMaterial().isReplaceable()) hasBase = true;
+                }
+
+                if (hasBase && !piece.conformToTerrain) {
+                    for (int y = oy - 1; y > 0; y--) {
+                        if (!world.getBlock(rx, y, rz).isReplaceable(world, rx, y, rz)) break;
+                        piece.platform.selectBlocks(world.rand, 0, 0, 0, false);
+                        world.setBlock(rx, y, rz, piece.platform.func_151561_a(), piece.platform.getSelectedBlockMetaData(), 2);
                     }
                 }
             }

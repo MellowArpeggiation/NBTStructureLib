@@ -16,10 +16,32 @@ public class JigsawPiece {
     public final NBTStructure structure;
 
     // Block modifiers, for randomization and terrain matching
-    public Map<Block, BlockSelector> blockTable; // replaces matching blocks using the result of a BlockSelector
-    public boolean conformToTerrain = false; // moves every single column to the terrain (digging out trenches, natural formations)
-    public boolean alignToTerrain = false; // aligns this component y-level individually, without moving individual columns (village houses)
-    public int heightOffset = 0; // individual offset for the structure piece
+
+    /**
+     * Replaces matching blocks using the result of a BlockSelector
+     */
+    public Map<Block, BlockSelector> blockTable;
+
+    /**
+     * Moves every single column to the terrain (for digging out trenches, natural formations, etc)
+     */
+    public boolean conformToTerrain = false;
+
+    /**
+     * Aligns this component y-level individually, without moving individual columns (like village houses)
+     */
+    public boolean alignToTerrain = false;
+
+    /**
+     * Height offset for this structure piece, -1 will sink the floor flush into the ground
+     */
+    public int heightOffset = 0;
+
+    /**
+     * Will fill any air gap beneath the jigsaw piece using the given selector
+     */
+    public BlockSelector platform;
+
 
     public JigsawPiece(String name, NBTStructure structure) {
         this(name, structure, 0);
