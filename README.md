@@ -141,6 +141,8 @@ Before you save your .nbt structure however, you'll need to add and configure th
 * Placement Priority - The order in which incoming pieces are evaluated for further connections. This is useful in niche scenarios where you want a specific room type to always generate early, so it doesn't get skipped due to range/size limits.
 * Joint Type - This only applies to vertical connections: Rollable joints will rotate randomly, and Aligned joints will be fixed in rotation relative to each other.
 
+I recommend that you ***do not change the Name or Target Name*** of your jigsaw blocks until you have some experience with the system, as it'll make it harder to debug more basic issues. These names are for connecting to specific jigsaw blocks *within* a jigsaw piece, not for selecting jigsaw pieces, that is the **pool's** job!
+
 
 
 ## How to design good jigsaw structures
