@@ -59,13 +59,21 @@ public class CommonProxy {
                     put("default", new JigsawPool() {{
                         add(new JigsawPiece("example_structure_junction", StructureManager.test_jigsaw_junction) {{
                             platform = new StoneBrickSelector();
-                        }}, 1);
+                        }}, 20);
                         add(new JigsawPiece("example_structure_hall", StructureManager.test_jigsaw_hall) {{
                             platform = new BrickSelector();
-                        }}, 1);
+                        }}, 20);
                     }});
                 }};
             }});
+
+            // Example: add new pieces to an existing structure
+            SpawnCondition existing = NBTGeneration.getStructure("nbtlib", "example_structure");
+            existing.pools.get("default").add(new JigsawPiece("example_structure_core_repeat", StructureManager.test_jigsaw_core) {{
+                platform = new StoneBrickSelector();
+                instanceLimit = 1;
+                required = true;
+            }}, 1);
         }
     }
 
