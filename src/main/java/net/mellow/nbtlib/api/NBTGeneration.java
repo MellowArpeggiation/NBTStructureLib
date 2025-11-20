@@ -463,6 +463,8 @@ public class NBTGeneration {
         private Set<JigsawPiece> findRequiredPieces(SpawnCondition spawn) {
             Set<JigsawPiece> requiredPieces = new HashSet<>();
 
+            if (spawn.pools == null) return requiredPieces;
+
             for (JigsawPool pool : spawn.pools.values()) {
                 for (WeightedJigsawPiece weight : pool.pieces) {
                     if (weight.piece.required) {
