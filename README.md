@@ -152,4 +152,5 @@ A good way to quickly iterate on your structures is to create a new world with `
 
 ### Troubleshooting
 > None of my mod blocks are loading! My structures are full missing blocks
+
 Make sure your structure files aren't loading before your blocks are initialised! This can occur if you instance them as static members inside your loading proxies. It is recommended that you make a `StructureManager` class somewhere, and to not reference it before structure registration!
