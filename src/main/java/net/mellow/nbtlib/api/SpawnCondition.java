@@ -51,6 +51,9 @@ public class SpawnCondition {
      * Maximum amount of components in this structure.
      * Once the structure reaches this many components,
      * it will only generate fallback pieces and stop
+     *
+     * Note: there is a hard limit of 1024 pieces to prevent infinite generation,
+     * even if some pieces are marked as required!
      */
     public int sizeLimit = 8;
 

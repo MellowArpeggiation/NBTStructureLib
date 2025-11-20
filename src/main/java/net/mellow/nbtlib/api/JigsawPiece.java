@@ -47,6 +47,11 @@ public class JigsawPiece {
      */
     public int instanceLimit = 0;
 
+    /**
+     * If set, will continue generation beyond the defined limits until this piece exists at least once
+     */
+    public boolean required = false;
+
 
     public JigsawPiece(String name, NBTStructure structure) {
         this(name, structure, 0);

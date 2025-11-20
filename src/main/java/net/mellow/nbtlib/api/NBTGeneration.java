@@ -3,14 +3,17 @@ package net.mellow.nbtlib.api;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.function.Predicate;
 
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
+import net.mellow.nbtlib.api.JigsawPiece.WeightedJigsawPiece;
 import net.mellow.nbtlib.api.NBTStructure.JigsawConnection;
 import net.mellow.nbtlib.api.SpawnCondition.WorldCoordinate;
 import net.mellow.nbtlib.block.BlockPos;
@@ -304,6 +307,8 @@ public class NBTGeneration {
             if (spawn.structure == null)
                 queuedComponents.add(startComponent);
 
+            Set<JigsawPiece> requiredPieces = findRequiredPieces(spawn);
+
             // Iterate through and build out all the components we intend to spawn
             while (!queuedComponents.isEmpty()) {
                 queuedComponents.sort((a, b) -> b.priority - a.priority); // sort by placement priority descending
@@ -321,7 +326,10 @@ public class NBTGeneration {
                     continue;
 
                 int distance = getDistanceTo(fromComponent.getBoundingBox());
-                boolean fallbacksOnly = this.components.size() >= spawn.sizeLimit || distance >= spawn.rangeLimit;
+
+                // Only generate fallback pieces once we hit our size limit, unless we have a required component
+                // Note that there is a HARD limit of 1024 pieces to prevent infinite generation
+                boolean fallbacksOnly = requiredPieces.size() == 0 && (components.size() >= spawn.sizeLimit || distance >= spawn.rangeLimit) || components.size() > 1024;
 
                 for (List<JigsawConnection> unshuffledList : fromComponent.piece.structure.fromConnections) {
                     List<JigsawConnection> connectionList = new ArrayList<>(unshuffledList);
@@ -360,6 +368,8 @@ public class NBTGeneration {
                         if (nextComponent != null) {
                             addComponent(nextComponent, fromConnection.placementPriority);
                             queuedComponents.add(nextComponent);
+
+                            requiredPieces.remove(nextComponent.piece);
                         } else {
                             // If we failed to fit anything in, grab something from the fallback pool,
                             // ignoring bounds check
@@ -448,6 +458,20 @@ public class NBTGeneration {
             int oz = nextPiece.structure.rotateZ(toConnection.pos.x, toConnection.pos.z, nextCoordBase);
 
             return new Component(spawn, nextPiece, rand, pos.x - ox, pos.y - oy, pos.z - oz, nextCoordBase).connectedFrom(toConnection);
+        }
+
+        private Set<JigsawPiece> findRequiredPieces(SpawnCondition spawn) {
+            Set<JigsawPiece> requiredPieces = new HashSet<>();
+
+            for (JigsawPool pool : spawn.pools.values()) {
+                for (WeightedJigsawPiece weight : pool.pieces) {
+                    if (weight.piece.required) {
+                        requiredPieces.add(weight.piece);
+                    }
+                }
+            }
+
+            return requiredPieces;
         }
 
         private List<JigsawConnection> getConnectionPool(JigsawPiece nextPiece, JigsawConnection fromConnection) {
