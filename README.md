@@ -147,3 +147,9 @@ Before you save your .nbt structure however, you'll need to add and configure th
 [This video by CodeNeon](https://www.youtube.com/watch?v=BIa_gqc93ok) is a great resource for designing good dungeons with jigsaw blocks, exploring interesting ways of generating rooms. Note that the vanilla 8 structure piece limit does not apply here, and air is _not_ included by default!
 
 A good way to quickly iterate on your structures is to create a new world with `debugSpawning` enabled within `nbtlib.cfg`, then fly around until the log outputs that your structure generated. Once you've located a structure and inspected it, leave the world, open the world in your file browser, and delete both the region/ folder and the data/NBTStructures.dat. Upon reloading the world, it'll regenerate the structure from scratch, but due to the deterministic nature of world generation, the structure will generate the same way at the same location!
+
+
+
+### Troubleshooting
+> None of my mod blocks are loading! My structures are full missing blocks
+Make sure your structure files aren't loading before your blocks are initialised! This can occur if you instance them as static members inside your loading proxies. It is recommended that you make a `StructureManager` class somewhere, and to not reference it before structure registration!
