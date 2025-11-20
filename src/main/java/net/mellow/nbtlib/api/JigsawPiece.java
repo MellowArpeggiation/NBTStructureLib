@@ -42,6 +42,11 @@ public class JigsawPiece {
      */
     public BlockSelector platform;
 
+    /**
+     * If greater than 0, will limit the number of times this piece can spawn in a structure
+     */
+    public int instanceLimit = 0;
+
 
     public JigsawPiece(String name, NBTStructure structure) {
         this(name, structure, 0);

@@ -353,8 +353,7 @@ public class NBTGeneration {
                         // Iterate randomly through the pool, attempting each piece until one fits
                         while (nextPool.totalWeight > 0) {
                             nextComponent = buildNextComponent(rand, spawn, nextPool, fromComponent, fromConnection);
-                            if (nextComponent != null && !fromComponent.hasIntersectionIgnoringSelf(components, nextComponent.getBoundingBox()))
-                                break;
+                            if (nextComponent != null && !fromComponent.hasIntersectionIgnoringSelf(components, nextComponent.getBoundingBox())) break;
                             nextComponent = null;
                         }
 
@@ -417,6 +416,17 @@ public class NBTGeneration {
             if (nextPiece == null) {
                 Registry.LOG.warn("[Jigsaw] Pool returned null piece: " + fromConnection.poolName);
                 return null;
+            }
+
+            if (nextPiece.instanceLimit > 0) {
+                int instances = 0;
+                for (StructureComponent component : components) {
+                    if (component instanceof Component && ((Component) component).piece == nextPiece) {
+                        instances++;
+
+                        if (instances >= nextPiece.instanceLimit) return null;
+                    }
+                }
             }
 
             List<JigsawConnection> connectionPool = getConnectionPool(nextPiece, fromConnection);
