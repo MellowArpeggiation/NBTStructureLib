@@ -12,6 +12,7 @@ import net.minecraft.command.ICommandSender;
 import net.minecraft.command.PlayerNotFoundException;
 import net.minecraft.command.WrongUsageException;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.ChatComponentTranslation;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.MathHelper;
@@ -70,6 +71,8 @@ public class CommandLocate extends CommandBase {
             ChatComponentTranslation message = new ChatComponentTranslation("commands.locate.success.coordinates", structure.name, pos.chunkXPos * 16, pos.chunkZPos * 16);
             message.getChatStyle().setColor(EnumChatFormatting.GREEN);
             sender.addChatMessage(message);
+        } else if (args[0].equals("list")) {
+            sender.addChatMessage(new ChatComponentText(String.join(", ", NBTGeneration.listStructures())));
         } else {
             throw new WrongUsageException(getCommandUsage(sender), new Object[0]);
         }
@@ -103,9 +106,9 @@ public class CommandLocate extends CommandBase {
             return Collections.emptyList();
 
         if (args.length == 1)
-            return getListOfStringsMatchingLastWord(args, "structure");
+            return getListOfStringsMatchingLastWord(args, "structure", "list");
 
-        if (args.length == 2) {
+        if (args.length == 2 && args[0].equals("structure")) {
             List<String> structures = NBTGeneration.listStructures();
             return getListOfStringsMatchingLastWord(args, structures.toArray(new String[structures.size()]));
         }
