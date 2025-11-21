@@ -3,7 +3,9 @@ package net.mellow.nbtlib.pack;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 import net.mellow.nbtlib.api.NBTStructure;
@@ -34,6 +36,22 @@ public class FileStructurePack extends AbstractStructurePack {
     @Override
     public List<NBTStructure> loadBasicStructures() {
         List<NBTStructure> structures = new ArrayList<>();
+        if (zipFile == null) return structures;
+
+        Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+        while (enumeration.hasMoreElements()) {
+            ZipEntry entry = enumeration.nextElement();
+
+            String name = entry.getName();
+            if (name.endsWith(".nbt")) {
+                try {
+                    structures.add(new NBTStructure(name, zipFile.getInputStream(entry)));
+                } catch (IOException ex) {
+                    // also squelch, I should handle these properly soon
+                }
+            }
+        }
+
         return structures;
     }
 
