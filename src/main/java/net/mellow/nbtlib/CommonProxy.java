@@ -46,11 +46,10 @@ public class CommonProxy {
 
         NBTGeneration.register();
 
-        StructurePackLoader.init();
-
         if (Config.spawnTestStructure) {
             NBTGeneration.registerStructure(0, new SpawnCondition("example_structure") {{
                 checkCoordinates = (check) -> check.coords.chunkXPos == 0 && check.coords.chunkZPos == 0;
+                sizeLimit = 128;
                 minHeight = 63;
                 startPool = "start";
                 pools = new HashMap<String, JigsawPool>() {{
@@ -80,7 +79,10 @@ public class CommonProxy {
         }
     }
 
-    public void postInit(FMLPostInitializationEvent event) {}
+    public void postInit(FMLPostInitializationEvent event) {
+        // in post so structure extensions can be applied to structures in other mods
+        StructurePackLoader.init();
+    }
 
     public void serverStarting(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandLocate());

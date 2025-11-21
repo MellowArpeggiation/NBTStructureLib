@@ -45,4 +45,38 @@ public class FolderStructurePack extends AbstractStructurePack {
         return structures;
     }
 
+    @Override
+    public List<StructureExtension> loadExtensionStructures() {
+        List<StructureExtension> structures = new ArrayList<>();
+
+        for (File modFolder : dir.listFiles()) {
+            if (!modFolder.isDirectory()) continue;
+
+            String targetModId = modFolder.getName();
+
+            for (File spawnFolder : modFolder.listFiles()) {
+                if (!spawnFolder.isDirectory()) continue;
+
+                String targetSpawnCondition = spawnFolder.getName();
+
+                for (File poolFolder : spawnFolder.listFiles()) {
+                    if(!poolFolder.isDirectory()) continue;
+
+                    String targetPool = poolFolder.getName();
+
+                    for (File structureFile : poolFolder.listFiles(structureFilter)) {
+                        try {
+                            NBTStructure structure = new NBTStructure(structureFile.getName(), new FileInputStream(structureFile));
+                            structures.add(new StructureExtension(targetModId, targetSpawnCondition, targetPool, structure));
+                        } catch (FileNotFoundException ex) {
+                            // not happening
+                        }
+                    }
+                }
+            }
+        }
+
+        return structures;
+    }
+
 }

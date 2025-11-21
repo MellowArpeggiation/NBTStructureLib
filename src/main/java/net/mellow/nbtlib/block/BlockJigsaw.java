@@ -272,7 +272,6 @@ public class BlockJigsaw extends BlockSideRotation {
             textPlacementPriority.mouseClicked(mouseX, mouseY, mouseButton);
 
             if (jointToggle.mousePressed(mc, mouseX, mouseY)) {
-                System.out.println("displayString: " + jointToggle.displayString);
                 jointToggle.displayString = jointToggle.displayString == "Rollable" ? "Aligned" : "Rollable";
             }
         }
