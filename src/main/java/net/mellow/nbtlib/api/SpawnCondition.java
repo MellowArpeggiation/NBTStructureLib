@@ -84,6 +84,10 @@ public class SpawnCondition {
         this.name = Registry.addPrefix(name);
     }
 
+    public SpawnCondition(String prefix, String name) {
+        this.name = prefix + ":" + name;
+    }
+
     // Can this spawn in the current biome
     protected boolean isValid(BiomeGenBase biome) {
         if (canSpawn == null) return true;

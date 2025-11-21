@@ -19,6 +19,7 @@ import net.mellow.nbtlib.command.CommandLocate;
 import net.mellow.nbtlib.gui.GuiHandler;
 import net.mellow.nbtlib.item.ModItems;
 import net.mellow.nbtlib.network.NetworkHandler;
+import net.mellow.nbtlib.pack.StructurePackLoader;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -44,6 +45,8 @@ public class CommonProxy {
         MinecraftForge.EVENT_BUS.register(worldGenerator);
 
         NBTGeneration.register();
+
+        StructurePackLoader.init();
 
         if (Config.spawnTestStructure) {
             NBTGeneration.registerStructure(0, new SpawnCondition("example_structure") {{

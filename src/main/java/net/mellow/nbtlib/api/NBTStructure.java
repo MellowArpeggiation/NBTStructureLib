@@ -65,6 +65,15 @@ public class NBTStructure {
         }
     }
 
+    public NBTStructure(String name, InputStream stream) {
+        this.name = name;
+        loadStructure(stream);
+    }
+
+    public String getName() {
+        return name.substring(0, name.length() - 4); // trim .nbt
+    }
+
     // Build a piece with a default rotation (NOT cascade safe!)
     public void build(World world, int x, int y, int z) {
         build(world, x, y, z, 0);
