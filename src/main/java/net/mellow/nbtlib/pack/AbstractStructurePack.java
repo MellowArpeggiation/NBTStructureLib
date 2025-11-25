@@ -1,8 +1,10 @@
 package net.mellow.nbtlib.pack;
 
 import java.io.BufferedReader;
+import java.io.Closeable;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -19,7 +21,7 @@ import net.mellow.nbtlib.api.NBTStructure;
 import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraftforge.common.BiomeDictionary;
 
-public abstract class AbstractStructurePack {
+public abstract class AbstractStructurePack implements Closeable {
 
     public abstract String getPackName();
     public abstract List<StructurePair> loadBasicStructures();
@@ -43,6 +45,7 @@ public abstract class AbstractStructurePack {
 
         public int heightOffset;
 
+        public List<Integer> validDimensions;
         private Set<BiomeDictionary.Type> validBiomeTypes;
 
         private StructureMeta() {
@@ -94,6 +97,16 @@ public abstract class AbstractStructurePack {
                             validBiomeTypes.add(type);
                         }
                     }
+                }
+            }
+
+
+            if (json.has("dimensions")) {
+                JsonArray dimensions = json.getAsJsonArray("dimensions");
+
+                for (JsonElement element : dimensions) {
+                    if (validDimensions == null) validDimensions = new ArrayList<>();
+                    validDimensions.add(element.getAsInt());
                 }
             }
         }

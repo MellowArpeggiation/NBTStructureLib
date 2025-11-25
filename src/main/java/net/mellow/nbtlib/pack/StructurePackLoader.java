@@ -3,6 +3,8 @@ package net.mellow.nbtlib.pack;
 import java.io.File;
 import java.io.FileFilter;
 
+import org.apache.commons.io.IOUtils;
+
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.JigsawPiece;
 import net.mellow.nbtlib.api.JigsawPool;
@@ -41,7 +43,12 @@ public class StructurePackLoader {
             for (StructurePair basicPair : pack.loadBasicStructures()) {
                 if (basicPair.meta.weight <= 0) basicPair.meta.weight = 1;
 
-                NBTGeneration.registerStructure(0, new SpawnCondition(pack.getPackName(), basicPair.structure.getName()) {{
+                int[] dimensions = {0};
+                if (basicPair.meta.validDimensions != null) {
+                    dimensions = basicPair.meta.validDimensions.stream().mapToInt(i -> (int)i).toArray();
+                }
+
+                NBTGeneration.registerStructure(dimensions, new SpawnCondition(pack.getPackName(), basicPair.structure.getName()) {{
                     structure = new JigsawPiece(pack.getPackName() + ":" + basicPair.structure.getName(), basicPair.structure, basicPair.meta.heightOffset);
                     canSpawn = basicPair.meta::canSpawn;
                     spawnWeight = basicPair.meta.weight;
@@ -76,6 +83,8 @@ public class StructurePackLoader {
 
                 pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.pair.structure.getName(), extension.pair.structure, extension.pair.meta.heightOffset), extension.pair.meta.weight);
             }
+
+            IOUtils.closeQuietly(pack);
         }
     }
 

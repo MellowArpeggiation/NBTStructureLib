@@ -93,4 +93,9 @@ public class FileStructurePack extends AbstractStructurePack {
         return StructureMeta.load(zipFile.getInputStream(entry));
     }
 
+    @Override
+    public void close() throws IOException {
+        zipFile.close();
+    }
+
 }
