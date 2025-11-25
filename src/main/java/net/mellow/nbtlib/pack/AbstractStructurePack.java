@@ -3,17 +3,21 @@ package net.mellow.nbtlib.pack;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashSet;
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.Set;
 
 import org.apache.commons.compress.utils.IOUtils;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.NBTStructure;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraftforge.common.BiomeDictionary;
 
 public abstract class AbstractStructurePack {
 
@@ -35,13 +39,13 @@ public abstract class AbstractStructurePack {
 
     public static class StructureMeta {
 
-        public Predicate<BiomeGenBase> canSpawn;
         public int weight;
 
         public int heightOffset;
 
+        private Set<BiomeDictionary.Type> validBiomeTypes;
+
         private StructureMeta() {
-            canSpawn = biome -> biome.rootHeight > 0.0F;
             weight = 0;
             heightOffset = -1;
         }
@@ -75,6 +79,37 @@ public abstract class AbstractStructurePack {
 
             if (json.has("heightOffset"))
                 heightOffset = json.get("heightOffset").getAsInt();
+
+
+            if (json.has("canSpawn")) {
+                JsonObject canSpawn = json.getAsJsonObject("canSpawn");
+
+                if (canSpawn.has("types")) {
+                    JsonArray types = canSpawn.getAsJsonArray("types");
+
+                    for (JsonElement element : types) {
+                        BiomeDictionary.Type type = BiomeDictionary.Type.valueOf(element.getAsString());
+                        if (type != null) {
+                            if (validBiomeTypes == null) validBiomeTypes = new HashSet<>();
+                            validBiomeTypes.add(type);
+                        }
+                    }
+                }
+            }
+        }
+
+        public boolean canSpawn(BiomeGenBase biome) {
+
+            // If no biome types set, default to any non-underwater biomes
+            if (validBiomeTypes == null) {
+                return biome.rootHeight > 0.0F;
+            }
+
+            for (BiomeDictionary.Type type : BiomeDictionary.getTypesForBiome(biome)) {
+                if (validBiomeTypes.contains(type)) return true;
+            }
+
+            return false;
         }
 
     }

@@ -43,7 +43,7 @@ public class StructurePackLoader {
 
                 NBTGeneration.registerStructure(0, new SpawnCondition(pack.getPackName(), basicPair.structure.getName()) {{
                     structure = new JigsawPiece(pack.getPackName() + ":" + basicPair.structure.getName(), basicPair.structure, basicPair.meta.heightOffset);
-                    canSpawn = basicPair.meta.canSpawn;
+                    canSpawn = basicPair.meta::canSpawn;
                     spawnWeight = basicPair.meta.weight;
                 }});
             }
