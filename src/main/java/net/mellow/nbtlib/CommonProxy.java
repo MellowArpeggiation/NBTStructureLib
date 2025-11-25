@@ -21,6 +21,7 @@ import net.mellow.nbtlib.gui.GuiHandler;
 import net.mellow.nbtlib.item.ModItems;
 import net.mellow.nbtlib.network.NetworkHandler;
 import net.mellow.nbtlib.pack.StructurePackLoader;
+import net.minecraft.launchwrapper.Launch;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -94,9 +95,7 @@ public class CommonProxy {
     }
 
     public File getStructurePackDir() {
-        // Doesn't support the --universe server option yet! (Although I've never seen it used)
-        File root = new File(".");
-        return new File(root, "structurepacks");
+        return new File(Launch.minecraftHome, "structurepacks");
     }
 
 }
