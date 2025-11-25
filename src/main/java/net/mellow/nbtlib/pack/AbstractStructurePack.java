@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 import org.apache.commons.compress.utils.IOUtils;
 
@@ -41,17 +43,19 @@ public abstract class AbstractStructurePack implements Closeable {
 
     public static class StructureMeta {
 
-        public int weight;
+        public int weight = 0;
 
-        public int heightOffset;
+        public int heightOffset = -1;
+        public int minHeight = 1;
+        public int maxHeight = 128;
+
+        public boolean conformToTerrain = false;
 
         public List<Integer> validDimensions;
         private Set<BiomeDictionary.Type> validBiomeTypes;
+        private List<Predicate<BiomeGenBase>> conditions = new ArrayList<>();
 
-        private StructureMeta() {
-            weight = 0;
-            heightOffset = -1;
-        }
+        private StructureMeta() { }
 
         public static StructureMeta getDefault() {
             return new StructureMeta();
@@ -83,6 +87,15 @@ public abstract class AbstractStructurePack implements Closeable {
             if (json.has("heightOffset"))
                 heightOffset = json.get("heightOffset").getAsInt();
 
+            if (json.has("minHeight"))
+                minHeight = json.get("minHeight").getAsInt();
+
+            if (json.has("maxHeight"))
+                maxHeight = json.get("maxHeight").getAsInt();
+
+            if (json.has("conformToTerrain"))
+                conformToTerrain = json.get("conformToTerrain").getAsBoolean();
+
 
             if (json.has("canSpawn")) {
                 JsonObject canSpawn = json.getAsJsonObject("canSpawn");
@@ -98,6 +111,22 @@ public abstract class AbstractStructurePack implements Closeable {
                         }
                     }
                 }
+
+                if (canSpawn.has("rootHeight")) {
+                    loadConditions(canSpawn.getAsJsonObject("rootHeight"), biome -> biome.rootHeight);
+                }
+
+                if (canSpawn.has("heightVariation")) {
+                    loadConditions(canSpawn.getAsJsonObject("heightVariation"), biome -> biome.heightVariation);
+                }
+
+                if (canSpawn.has("temperature")) {
+                    loadConditions(canSpawn.getAsJsonObject("temperature"), biome -> biome.temperature);
+                }
+
+                if (canSpawn.has("rainfall")) {
+                    loadConditions(canSpawn.getAsJsonObject("rainfall"), biome -> biome.rainfall);
+                }
             }
 
 
@@ -112,6 +141,9 @@ public abstract class AbstractStructurePack implements Closeable {
         }
 
         public boolean canSpawn(BiomeGenBase biome) {
+            for (Predicate<BiomeGenBase> condition : conditions) {
+                if (!condition.test(biome)) return false;
+            }
 
             // If no biome types set, default to any non-underwater biomes
             if (validBiomeTypes == null) {
@@ -123,6 +155,33 @@ public abstract class AbstractStructurePack implements Closeable {
             }
 
             return false;
+        }
+
+        private void loadConditions(JsonObject json, Function<BiomeGenBase, Float> supplier) {
+            if (json.has("eq")) {
+                float value = json.get("eq").getAsFloat();
+                conditions.add(biome -> supplier.apply(biome) == value);
+            }
+
+            if (json.has("lt")) {
+                float value = json.get("lt").getAsFloat();
+                conditions.add(biome -> supplier.apply(biome) < value);
+            }
+
+            if (json.has("gt")) {
+                float value = json.get("gt").getAsFloat();
+                conditions.add(biome -> supplier.apply(biome) > value);
+            }
+
+            if (json.has("lte")) {
+                float value = json.get("lte").getAsFloat();
+                conditions.add(biome -> supplier.apply(biome) <= value);
+            }
+
+            if (json.has("gte")) {
+                float value = json.get("gte").getAsFloat();
+                conditions.add(biome -> supplier.apply(biome) >= value);
+            }
         }
 
     }

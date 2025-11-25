@@ -49,9 +49,13 @@ public class StructurePackLoader {
                 }
 
                 NBTGeneration.registerStructure(dimensions, new SpawnCondition(pack.getPackName(), basicPair.structure.getName()) {{
-                    structure = new JigsawPiece(pack.getPackName() + ":" + basicPair.structure.getName(), basicPair.structure, basicPair.meta.heightOffset);
+                    structure = new JigsawPiece(pack.getPackName() + ":" + basicPair.structure.getName(), basicPair.structure, basicPair.meta.heightOffset) {{
+                        conformToTerrain = basicPair.meta.conformToTerrain;
+                    }};
                     canSpawn = basicPair.meta::canSpawn;
                     spawnWeight = basicPair.meta.weight;
+                    minHeight = basicPair.meta.minHeight;
+                    maxHeight = basicPair.meta.maxHeight;
                 }});
             }
 
@@ -81,7 +85,9 @@ public class StructurePackLoader {
                 // If no defined weight, make this piece have an average weight
                 if (extension.pair.meta.weight <= 0) extension.pair.meta.weight = pool.getAverageWeight();
 
-                pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.pair.structure.getName(), extension.pair.structure, extension.pair.meta.heightOffset), extension.pair.meta.weight);
+                pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.pair.structure.getName(), extension.pair.structure, extension.pair.meta.heightOffset) {{
+                    conformToTerrain = extension.pair.meta.conformToTerrain;
+                }}, extension.pair.meta.weight);
             }
 
             IOUtils.closeQuietly(pack);
