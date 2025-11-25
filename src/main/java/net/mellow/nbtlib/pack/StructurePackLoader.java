@@ -12,7 +12,6 @@ import net.mellow.nbtlib.api.NBTGeneration;
 import net.mellow.nbtlib.api.SpawnCondition;
 import net.mellow.nbtlib.pack.AbstractStructurePack.StructureExtension;
 import net.mellow.nbtlib.pack.AbstractStructurePack.StructurePair;
-import net.minecraft.client.Minecraft;
 
 /**
  * Custom structures added without code!
@@ -32,7 +31,7 @@ public class StructurePackLoader {
     private static File structurePackDir;
 
     public static void init() {
-        structurePackDir = new File(Minecraft.getMinecraft().mcDataDir, "structurepacks");
+        structurePackDir = Registry.proxy.getStructurePackDir();
         structurePackDir.mkdir();
 
         for (File file : structurePackDir.listFiles(structurePackFilter)) {

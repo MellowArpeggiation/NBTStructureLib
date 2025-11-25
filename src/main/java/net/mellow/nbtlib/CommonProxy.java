@@ -1,5 +1,6 @@
 package net.mellow.nbtlib;
 
+import java.io.File;
 import java.util.HashMap;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -90,6 +91,12 @@ public class CommonProxy {
 
     public SpawnCondition getStructureAt(World world, int chunkX, int chunkZ) {
         return worldGenerator.getStructureAt(world, chunkX, chunkZ);
+    }
+
+    public File getStructurePackDir() {
+        // Doesn't support the --universe server option yet! (Although I've never seen it used)
+        File root = new File(".");
+        return new File(root, "structurepacks");
     }
 
 }

@@ -1,10 +1,13 @@
 package net.mellow.nbtlib;
 
+import java.io.File;
+
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import net.mellow.nbtlib.gui.LookOverlayHandler;
 import net.mellow.nbtlib.render.RenderBlockSideRotation;
+import net.minecraft.client.Minecraft;
 import net.mellow.nbtlib.render.RenderBlockReplace;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -30,6 +33,11 @@ public class ClientProxy extends CommonProxy {
     private void registerRendering() {
         RenderingRegistry.registerBlockHandler(new RenderBlockReplace());
         RenderingRegistry.registerBlockHandler(new RenderBlockSideRotation());
+    }
+
+    @Override
+    public File getStructurePackDir() {
+        return new File(Minecraft.getMinecraft().mcDataDir, "structurepacks");
     }
 
 }
