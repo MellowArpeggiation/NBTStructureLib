@@ -31,15 +31,12 @@ public class FolderStructurePack extends AbstractStructurePack {
     }
 
     @Override
-    public List<NBTStructure> loadBasicStructures() {
-        List<NBTStructure> structures = new ArrayList<>();
+    public List<StructurePair> loadBasicStructures() {
+        List<StructurePair> structures = new ArrayList<>();
 
         for (File file : dir.listFiles(structureFilter)) {
-            try {
-                structures.add(new NBTStructure(file.getName(), new FileInputStream(file)));
-            } catch (FileNotFoundException ex) {
-                // squelch, this can't really happen
-            }
+            StructurePair pair = loadPair(file);
+            if (pair != null) structures.add(pair);
         }
 
         return structures;
@@ -60,23 +57,46 @@ public class FolderStructurePack extends AbstractStructurePack {
                 String targetSpawnCondition = spawnFolder.getName();
 
                 for (File poolFolder : spawnFolder.listFiles()) {
-                    if(!poolFolder.isDirectory()) continue;
+                    if (!poolFolder.isDirectory()) continue;
 
                     String targetPool = poolFolder.getName();
 
                     for (File structureFile : poolFolder.listFiles(structureFilter)) {
-                        try {
-                            NBTStructure structure = new NBTStructure(structureFile.getName(), new FileInputStream(structureFile));
-                            structures.add(new StructureExtension(targetModId, targetSpawnCondition, targetPool, structure));
-                        } catch (FileNotFoundException ex) {
-                            // not happening
-                        }
+                        StructurePair pair = loadPair(structureFile);
+                        if (pair != null) structures.add(new StructureExtension(targetModId, targetSpawnCondition, targetPool, pair));
                     }
                 }
             }
         }
 
         return structures;
+    }
+
+    private StructurePair loadPair(File file) {
+        try {
+            NBTStructure structure = new NBTStructure(file.getName(), new FileInputStream(file));
+
+            FileFilter filter = new FileFilter() {
+                public boolean accept(File check) {
+                    return check.isFile() && check.getName().equals(file.getName() + ".mcmeta");
+                }
+            };
+
+            StructureMeta meta = null;
+            for (File mcmeta : file.getParentFile().listFiles(filter)) {
+                meta = StructureMeta.load(new FileInputStream(mcmeta));
+                break;
+            }
+
+            if (meta == null) meta = StructureMeta.getDefault();
+
+            return new StructurePair(structure, meta);
+
+        } catch (FileNotFoundException ex) {
+            // squelch, for now
+        }
+
+        return null;
     }
 
 }

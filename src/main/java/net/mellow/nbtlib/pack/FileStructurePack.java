@@ -34,8 +34,8 @@ public class FileStructurePack extends AbstractStructurePack {
     }
 
     @Override
-    public List<NBTStructure> loadBasicStructures() {
-        List<NBTStructure> structures = new ArrayList<>();
+    public List<StructurePair> loadBasicStructures() {
+        List<StructurePair> structures = new ArrayList<>();
         if (zipFile == null) return structures;
 
         Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
@@ -46,9 +46,10 @@ public class FileStructurePack extends AbstractStructurePack {
             String name = entry.getName();
             if (name.endsWith(".nbt") && !name.contains("/")) {
                 try {
-                    structures.add(new NBTStructure(name, zipFile.getInputStream(entry)));
+                    NBTStructure structure = new NBTStructure(name, zipFile.getInputStream(entry));
+                    structures.add(new StructurePair(structure, getMeta(name)));
                 } catch (IOException ex) {
-                    // also squelch, I should handle these properly soon
+                    // TODO
                 }
             }
         }
@@ -73,14 +74,23 @@ public class FileStructurePack extends AbstractStructurePack {
                     if (segments.length != 4) continue;
 
                     NBTStructure structure = new NBTStructure(segments[3], zipFile.getInputStream(entry));
-                    structures.add(new StructureExtension(segments[0], segments[1], segments[2], structure));
+
+                    structures.add(new StructureExtension(segments[0], segments[1], segments[2], new StructurePair(structure, getMeta(name))));
                 } catch (IOException ex) {
-                    // awawa
+                    // TODO
                 }
             }
         }
 
         return structures;
+    }
+
+    private StructureMeta getMeta(String name) throws IOException {
+        ZipEntry entry = zipFile.getEntry(name + ".mcmeta");
+
+        if (entry == null) return StructureMeta.getDefault();
+
+        return StructureMeta.load(zipFile.getInputStream(entry));
     }
 
 }

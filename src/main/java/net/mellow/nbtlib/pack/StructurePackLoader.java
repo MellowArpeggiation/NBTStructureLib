@@ -7,9 +7,9 @@ import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.JigsawPiece;
 import net.mellow.nbtlib.api.JigsawPool;
 import net.mellow.nbtlib.api.NBTGeneration;
-import net.mellow.nbtlib.api.NBTStructure;
 import net.mellow.nbtlib.api.SpawnCondition;
 import net.mellow.nbtlib.pack.AbstractStructurePack.StructureExtension;
+import net.mellow.nbtlib.pack.AbstractStructurePack.StructurePair;
 import net.minecraft.client.Minecraft;
 
 /**
@@ -38,10 +38,13 @@ public class StructurePackLoader {
 
             // Basic non-jigsaw structures with no specified spawning conditions
             // Grabs every .nbt file at the ROOT of the structurepack!
-            for (NBTStructure basicStructure : pack.loadBasicStructures()) {
-                NBTGeneration.registerStructure(0, new SpawnCondition(pack.getPackName(), basicStructure.getName()) {{
-                    structure = new JigsawPiece(pack.getPackName() + ":" + basicStructure.getName(), basicStructure, -1);
-                    canSpawn = biome -> biome.rootHeight > 0.0F;
+            for (StructurePair basicPair : pack.loadBasicStructures()) {
+                if (basicPair.meta.weight <= 0) basicPair.meta.weight = 1;
+
+                NBTGeneration.registerStructure(0, new SpawnCondition(pack.getPackName(), basicPair.structure.getName()) {{
+                    structure = new JigsawPiece(pack.getPackName() + ":" + basicPair.structure.getName(), basicPair.structure, basicPair.meta.heightOffset);
+                    canSpawn = basicPair.meta.canSpawn;
+                    spawnWeight = basicPair.meta.weight;
                 }});
             }
 
@@ -69,9 +72,9 @@ public class StructurePackLoader {
                 }
 
                 // If no defined weight, make this piece have an average weight
-                if (extension.weight <= 0) extension.weight = pool.getAverageWeight();
+                if (extension.pair.meta.weight <= 0) extension.pair.meta.weight = pool.getAverageWeight();
 
-                pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.structure.getName(), extension.structure, -1), extension.weight);
+                pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.pair.structure.getName(), extension.pair.structure, extension.pair.meta.heightOffset), extension.pair.meta.weight);
             }
         }
     }
