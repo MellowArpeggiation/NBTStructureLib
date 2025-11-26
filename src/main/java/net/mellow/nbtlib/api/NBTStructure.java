@@ -9,6 +9,7 @@ import java.util.*;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
+import net.mellow.nbtlib.api.selector.BiomeBlockSelector;
 import net.mellow.nbtlib.block.BlockPos;
 import net.mellow.nbtlib.block.BlockReplace;
 import net.mellow.nbtlib.block.ModBlocks;
@@ -24,6 +25,7 @@ import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.world.World;
+import net.minecraft.world.biome.BiomeGenBase;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraft.world.gen.structure.StructureComponent.BlockSelector;
 import net.minecraftforge.common.util.ForgeDirection;
@@ -154,6 +156,22 @@ public class NBTStructure {
         int maxX = Math.max(rotMinX, rotMaxX);
         int minZ = Math.min(rotMinZ, rotMaxZ);
         int maxZ = Math.max(rotMinZ, rotMaxZ);
+
+        if (piece.blockTable != null || piece.platform != null) {
+            BiomeGenBase biome = world.getWorldChunkManager().getBiomeGenAt(generatingBounds.getCenterX(), generatingBounds.getCenterZ());
+
+            if (piece.blockTable != null) {
+                for (BlockSelector selector : piece.blockTable.values()) {
+                    if (selector instanceof BiomeBlockSelector) {
+                        ((BiomeBlockSelector) selector).nextBiome = biome;
+                    }
+                }
+            }
+
+            if (piece.platform instanceof BiomeBlockSelector) {
+                ((BiomeBlockSelector) piece.platform).nextBiome = biome;
+            }
+        }
 
         for (int bx = minX; bx <= maxX; bx++) {
             for (int bz = minZ; bz <= maxZ; bz++) {

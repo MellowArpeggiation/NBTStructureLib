@@ -13,6 +13,7 @@ import net.mellow.nbtlib.api.JigsawPiece;
 import net.mellow.nbtlib.api.JigsawPool;
 import net.mellow.nbtlib.api.NBTGeneration;
 import net.mellow.nbtlib.api.SpawnCondition;
+import net.mellow.nbtlib.api.selector.BiomeFillerSelector;
 import net.mellow.nbtlib.api.selector.BrickSelector;
 import net.mellow.nbtlib.api.selector.StoneBrickSelector;
 import net.mellow.nbtlib.block.ModBlocks;
@@ -62,7 +63,7 @@ public class CommonProxy {
                     }});
                     put("default", new JigsawPool() {{
                         add(new JigsawPiece("example_structure_junction", StructureManager.test_jigsaw_junction) {{
-                            platform = new StoneBrickSelector();
+                            platform = new BiomeFillerSelector();
                         }}, 20);
                         add(new JigsawPiece("example_structure_hall", StructureManager.test_jigsaw_hall) {{
                             platform = new BrickSelector();
