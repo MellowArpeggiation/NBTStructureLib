@@ -37,8 +37,10 @@ public class NBTGeneration {
 
     private static Map<String, SpawnCondition> namedMap = new HashMap<>();
 
-    private static Map<Integer, List<SpawnCondition>> weightedMap = new HashMap<>();
+    private static Map<Integer, List<SpawnCondition>> spawnMap = new HashMap<>();
     private static Map<Integer, List<SpawnCondition>> customSpawnMap = new HashMap<>();
+
+    private static Map<Integer, Map<Integer, WeightedSpawnList>> validBiomeCache = new HashMap<>();
 
     public static void register() {
         MapGenStructureIO.registerStructure(Start.class, "NBTStructures");
@@ -58,10 +60,8 @@ public class NBTGeneration {
             return;
         }
 
-        List<SpawnCondition> weightedList = weightedMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
-        for (int i = 0; i < spawn.spawnWeight; i++) {
-            weightedList.add(spawn);
-        }
+        List<SpawnCondition> spawnList = spawnMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
+        spawnList.add(spawn);
     }
 
     // Register a structure for multiple dimensions simultaneously
@@ -85,10 +85,8 @@ public class NBTGeneration {
             }
         };
 
-        List<SpawnCondition> weightedList = weightedMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
-        for (int i = 0; i < spawn.spawnWeight; i++) {
-            weightedList.add(spawn);
-        }
+        List<SpawnCondition> spawnList = spawnMap.computeIfAbsent(dimensionId, integer -> new ArrayList<SpawnCondition>());
+        spawnList.add(spawn);
     }
 
     // Presents a list of all structures registered (so far)
@@ -562,7 +560,7 @@ public class NBTGeneration {
                 }
             }
 
-            if (!weightedMap.containsKey(worldObj.provider.dimensionId))
+            if (!spawnMap.containsKey(worldObj.provider.dimensionId))
                 return null;
 
             int x = chunkX;
@@ -597,15 +595,45 @@ public class NBTGeneration {
         }
 
         private SpawnCondition findSpawn(BiomeGenBase biome) {
-            List<SpawnCondition> spawnList = weightedMap.get(worldObj.provider.dimensionId);
+            Map<Integer, WeightedSpawnList> dimensionCache = validBiomeCache.computeIfAbsent(worldObj.provider.dimensionId, integer -> new HashMap<>());
 
-            for (int i = 0; i < 256; i++) {
-                SpawnCondition spawn = spawnList.get(rand.nextInt(spawnList.size()));
-                if (spawn.isValid(biome)) return spawn;
+            WeightedSpawnList filteredList;
+            if (!dimensionCache.containsKey(biome.biomeID)) {
+                List<SpawnCondition> spawnList = spawnMap.get(worldObj.provider.dimensionId);
+
+                filteredList = new WeightedSpawnList();
+                for (SpawnCondition spawn : spawnList) {
+                    if (spawn.isValid(biome)) {
+                        filteredList.add(spawn);
+                        filteredList.totalWeight += spawn.spawnWeight;
+                    }
+                }
+
+                dimensionCache.put(biome.biomeID, filteredList);
+            } else {
+                filteredList = dimensionCache.get(biome.biomeID);
+            }
+
+            if (filteredList.totalWeight == 0) return null;
+
+            int weight = rand.nextInt(filteredList.totalWeight);
+
+            for (SpawnCondition spawn : filteredList) {
+                weight -= spawn.spawnWeight;
+
+                if (weight < 0) {
+                    return spawn;
+                }
             }
 
             return null;
         }
+
+    }
+
+    private static class WeightedSpawnList extends ArrayList<SpawnCondition> {
+
+        public int totalWeight = 0;
 
     }
 
