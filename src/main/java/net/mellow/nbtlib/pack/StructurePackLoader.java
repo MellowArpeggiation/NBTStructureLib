@@ -77,8 +77,10 @@ public class StructurePackLoader {
                 JigsawPool pool = spawn.pools.get(extension.targetPool);
 
                 if (pool == null) {
-                    Registry.LOG.warn("[StructurePack] SpawnCondition does not contain pool: " + extension.targetPool);
-                    continue;
+                    pool = new JigsawPool();
+                    spawn.pools.put(extension.targetPool, pool);
+
+                    Registry.LOG.info("[StructurePack] New pool created in SpawnCondition: " + extension.targetPool);
                 }
 
                 // If no defined weight, make this piece have an average weight

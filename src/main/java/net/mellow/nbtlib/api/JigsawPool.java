@@ -25,6 +25,7 @@ public class JigsawPool {
     }
 
     public int getAverageWeight() {
+        if (pieces.size() == 0) return 1;
         return totalWeight / pieces.size();
     }
 
