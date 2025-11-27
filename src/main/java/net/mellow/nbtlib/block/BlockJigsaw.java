@@ -25,8 +25,6 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
-import net.minecraft.item.ItemBlock;
-import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.EnumChatFormatting;
@@ -61,7 +59,7 @@ public class BlockJigsaw extends BlockSideRotation {
         TileEntityJigsaw jigsaw = (TileEntityJigsaw) te;
 
         if (!player.isSneaking()) {
-            Block block = getBlock(world, player.getHeldItem());
+            Block block = ModBlocks.getBlockFromStack(player.getHeldItem());
             if (block == ModBlocks.structure_air) block = Blocks.air;
 
             if (block != null && block != ModBlocks.structure_jigsaw && block != ModBlocks.structure_loot) {
@@ -249,6 +247,8 @@ public class BlockJigsaw extends BlockSideRotation {
 
             data.setBoolean("roll", jointToggle.displayString == "Rollable");
 
+            jigsaw.readFromNBT(data);
+
             NetworkHandler.instance.sendToServer(new NBTUpdatePacket(data, jigsaw.xCoord, jigsaw.yCoord, jigsaw.zCoord));
         }
 
@@ -281,13 +281,6 @@ public class BlockJigsaw extends BlockSideRotation {
             return false;
         }
 
-    }
-
-    private static Block getBlock(World world, ItemStack stack) {
-        if (stack == null) return null;
-        if (!(stack.getItem() instanceof ItemBlock)) return null;
-
-        return ((ItemBlock) stack.getItem()).field_150939_a;
     }
 
 }

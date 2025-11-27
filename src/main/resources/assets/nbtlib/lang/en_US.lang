@@ -11,5 +11,5 @@ tile.structure_jigsaw.desc=Connects multiple structures together$The block it tu
 tile.structure_loot.name=Structure Loot Block
 tile.structure_loot.desc=Spawns a chest (or any block with an inventory)$The block can be changed by placing an inventory containing block on it
 
-item.structure_wand.name=Structure Wand
+item.structure_wand.name=Structure Saving Wand
 item.structure_wand.desc="Replication breeds decadence"$(Saves an area defined by two right-clicks,$adds a block to the blacklist by crouch right-clicking!)

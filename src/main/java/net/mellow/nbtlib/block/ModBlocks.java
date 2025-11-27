@@ -4,11 +4,13 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.block.BlockJigsaw.TileEntityJigsaw;
 import net.mellow.nbtlib.block.BlockLoot.TileEntityLoot;
+import net.mellow.nbtlib.block.BlockStructure.TileEntityStructure;
 import net.mellow.nbtlib.item.ItemBlockReplace;
 import net.mellow.nbtlib.item.ItemBlockTooltip;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.ItemBlock;
+import net.minecraft.item.ItemStack;
 
 public class ModBlocks {
 
@@ -18,8 +20,7 @@ public class ModBlocks {
         registerTileEntities();
     }
 
-    // coming soon, replacing the wand
-    // public static Block structure_block;
+    public static Block structure_block;
 
     public static Block structure_air;
     public static Block structure_jigsaw;
@@ -27,7 +28,7 @@ public class ModBlocks {
 
     private static void initBlocks() {
 
-        // structure_block = new BlockStructure().setBlockName("structure_block");
+        structure_block = new BlockStructure().setBlockName("structure_block");
 
         structure_air = new BlockReplace(Blocks.air).setBlockName("structure_air").setBlockTextureName(Registry.MODID + ":structure_air");
         structure_jigsaw = new BlockJigsaw().setBlockName("structure_jigsaw");
@@ -37,7 +38,7 @@ public class ModBlocks {
 
     private static void registerBlocks() {
 
-        // register(structure_block);
+        register(structure_block);
 
         register(structure_air, ItemBlockReplace.class);
         register(structure_jigsaw);
@@ -46,6 +47,8 @@ public class ModBlocks {
     }
 
     private static void registerTileEntities() {
+
+        GameRegistry.registerTileEntity(TileEntityStructure.class, "tileentity_structure");
 
         GameRegistry.registerTileEntity(TileEntityJigsaw.class, "tileentity_structure_jigsaw");
         GameRegistry.registerTileEntity(TileEntityLoot.class, "tileentity_structure_loot");
@@ -58,6 +61,13 @@ public class ModBlocks {
 
     private static void register(Block block, Class<? extends ItemBlock> itemClass) {
         GameRegistry.registerBlock(block, itemClass, block.getUnlocalizedName());
+    }
+
+    public static Block getBlockFromStack(ItemStack stack) {
+        if (stack == null) return null;
+        if (!(stack.getItem() instanceof ItemBlock)) return null;
+
+        return ((ItemBlock) stack.getItem()).field_150939_a;
     }
 
 }

@@ -32,7 +32,6 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.inventory.IInventory;
-import net.minecraft.item.ItemBlock;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -105,17 +104,13 @@ public class BlockLoot extends BlockSideRotation {
     }
 
     private Block getLootableBlock(World world, ItemStack stack) {
-        if (stack == null) return null;
+        Block block = ModBlocks.getBlockFromStack(stack);
+        if (block == null || !(block instanceof ITileEntityProvider)) return null;
 
-        if (stack.getItem() instanceof ItemBlock) {
-            Block block = ((ItemBlock) stack.getItem()).field_150939_a;
-            int meta = stack.getItemDamage();
+        int meta = stack.getItemDamage();
+        TileEntity te = ((ITileEntityProvider) block).createNewTileEntity(world, meta);
 
-            if (block instanceof ITileEntityProvider) {
-                TileEntity te = ((ITileEntityProvider) block).createNewTileEntity(world, meta);
-                if (te instanceof IInventory) return block;
-            }
-        }
+        if (te instanceof IInventory) return block;
 
         return null;
     }
@@ -323,6 +318,8 @@ public class BlockLoot extends BlockSideRotation {
 
             try { data.setInteger("min", Integer.parseInt(textMinItems.getText())); } catch (Exception ex) {}
             try { data.setInteger("max", Integer.parseInt(textMaxItems.getText())); } catch (Exception ex) {}
+
+            loot.readFromNBT(data);
 
             NetworkHandler.instance.sendToServer(new NBTUpdatePacket(data, loot.xCoord, loot.yCoord, loot.zCoord));
         }

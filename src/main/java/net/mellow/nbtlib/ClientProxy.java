@@ -2,11 +2,14 @@ package net.mellow.nbtlib;
 
 import java.io.File;
 
+import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import net.mellow.nbtlib.block.BlockStructure.TileEntityStructure;
 import net.mellow.nbtlib.gui.LookOverlayHandler;
 import net.mellow.nbtlib.render.RenderBlockSideRotation;
+import net.mellow.nbtlib.render.RenderTileEntityStructure;
 import net.minecraft.client.Minecraft;
 import net.mellow.nbtlib.render.RenderBlockReplace;
 import net.minecraftforge.common.MinecraftForge;
@@ -20,7 +23,8 @@ public class ClientProxy extends CommonProxy {
     public void preInit(FMLPreInitializationEvent event) {
         super.preInit(event);
 
-        registerRendering();
+        registerBlockRendering();
+        registerTileEntityRendering();
     }
 
     @Override
@@ -30,9 +34,17 @@ public class ClientProxy extends CommonProxy {
         MinecraftForge.EVENT_BUS.register(new LookOverlayHandler());
     }
 
-    private void registerRendering() {
+    private void registerBlockRendering() {
+
         RenderingRegistry.registerBlockHandler(new RenderBlockReplace());
         RenderingRegistry.registerBlockHandler(new RenderBlockSideRotation());
+
+    }
+
+    private void registerTileEntityRendering() {
+
+        ClientRegistry.bindTileEntitySpecialRenderer(TileEntityStructure.class, new RenderTileEntityStructure());
+
     }
 
     @Override
