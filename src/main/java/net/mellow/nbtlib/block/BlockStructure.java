@@ -32,6 +32,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
+import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
@@ -88,9 +89,9 @@ public class BlockStructure extends BlockContainer {
 
         public String name = "";
 
-        public int sizeX;
-        public int sizeY;
-        public int sizeZ;
+        public int sizeX = 1;
+        public int sizeY = 1;
+        public int sizeZ = 1;
 
         public Set<BlockMeta> blacklist = new HashSet<>();
 
@@ -103,8 +104,18 @@ public class BlockStructure extends BlockContainer {
             }
         }
 
-        public void saveStructure() {
+        public void saveStructure(EntityPlayer player) {
+            if (name.isEmpty()) {
+                player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Could not save: invalid name"));
+                return;
+            }
 
+            if (sizeX <= 0 || sizeY <= 0 || sizeZ <= 0) {
+                player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Could not save: invalid dimensions"));
+                return;
+            }
+
+            player.addChatMessage(new ChatComponentText("structure saved to: .minecraft/structures/i-lied-it-isnt-saved-yet.nbt"));
         }
 
         @Override
@@ -151,9 +162,7 @@ public class BlockStructure extends BlockContainer {
             markDirty();
 
             if (nbt.getBoolean("save")) {
-                saveStructure();
-
-                player.addChatMessage(new ChatComponentText("structure saved to: .minecraft/structures/i-lied-it-isnt-saved-yet.nbt"));
+                saveStructure(player);
             }
         }
 
