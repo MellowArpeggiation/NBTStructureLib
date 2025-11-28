@@ -1,6 +1,7 @@
 package net.mellow.nbtlib.block;
 
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,6 +19,7 @@ import net.mellow.nbtlib.api.BlockMeta;
 import net.mellow.nbtlib.api.NBTStructure;
 import net.mellow.nbtlib.gui.IGuiProvider;
 import net.mellow.nbtlib.gui.ILookOverlay;
+import net.mellow.nbtlib.gui.element.GuiFileList;
 import net.mellow.nbtlib.network.IControlReceiver;
 import net.mellow.nbtlib.network.NBTUpdatePacket;
 import net.mellow.nbtlib.network.NetworkHandler;
@@ -290,6 +292,7 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
 
     }
 
+    @SideOnly(Side.CLIENT)
     public static class GuiStructureSave extends GuiScreen {
 
         private final TileEntityStructure tile;
@@ -395,15 +398,29 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
 
     }
 
-        public static class GuiStructureLoad extends GuiScreen {
+    @SideOnly(Side.CLIENT)
+    public static class GuiStructureLoad extends GuiScreen {
 
         private final TileEntityStructure tile;
 
         private GuiTextField textName;
 
+        private GuiFileList fileList;
+
         private GuiButton performAction;
 
         private boolean loadOnClose = false;
+
+        private static File structureDirectory = new File(Minecraft.getMinecraft().mcDataDir, "structures");
+        private static String nameFilter = "";
+        private static final FileFilter structureFilter = new FileFilter() {
+
+            public boolean accept(File file) {
+                if (!file.isFile() || !file.getName().endsWith(".nbt")) return false;
+                return nameFilter.isEmpty() || file.getName().contains(nameFilter);
+            }
+
+        };
 
         public GuiStructureLoad(TileEntityStructure tile) {
             this.tile = tile;
@@ -415,13 +432,23 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
 
             textName = new GuiTextField(fontRendererObj, width / 2 - 150, 50, 300, 20);
             textName.setText(tile.name);
+            nameFilter = tile.name;
 
-            performAction = new GuiButton(0, width / 2 - 150, 150, 300, 20, "LOAD");
+            structureDirectory.mkdir();
+
+            fileList = new GuiFileList(mc, structureDirectory.listFiles(structureFilter), this::selectFile, nameFilter, width, height, 70, height - 90, 16);
+
+            performAction = new GuiButton(0, width / 2 - 150, height - 70, 300, 20, "LOAD");
+        }
+
+        public void selectFile(File file) {
+            String fileName = file.getName();
+            textName.setText(fileName.substring(0, fileName.length() - 4));
         }
 
         @Override
         public void drawScreen(int mouseX, int mouseY, float partialTicks) {
-            drawDefaultBackground();
+            fileList.drawScreen(mouseX, mouseY, partialTicks);
 
             textName.drawTextBox();
 
@@ -451,6 +478,11 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
             super.keyTyped(typedChar, keyCode);
 
             textName.textboxKeyTyped(typedChar, keyCode);
+
+            if (!nameFilter.equals(textName.getText())) {
+                nameFilter = textName.getText();
+                fileList = new GuiFileList(mc, structureDirectory.listFiles(structureFilter), this::selectFile, nameFilter, width, height, 70, height - 90, 16);
+            }
         }
 
         @Override
@@ -458,12 +490,22 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
             super.mouseClicked(mouseX, mouseY, mouseButton);
             textName.mouseClicked(mouseX, mouseY, mouseButton);
 
+            fileList.func_148179_a(mouseX, mouseY, mouseButton);
+
+            fileList.select(textName.getText());
+
             if (performAction.mousePressed(mc, mouseX, mouseY)) {
                 loadOnClose = true;
 
                 mc.displayGuiScreen(null);
                 mc.setIngameFocus();
             }
+        }
+
+        @Override
+        protected void mouseMovedOrUp(int mouseX, int mouseY, int state) {
+            super.mouseMovedOrUp(mouseX, mouseY, state);
+            fileList.func_148181_b(mouseX, mouseY, state);
         }
 
         @Override
