@@ -8,6 +8,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
+import org.apache.commons.compress.utils.IOUtils;
+
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
@@ -76,7 +78,9 @@ public class NBTStructure {
 
     public NBTStructure(File file) throws FileNotFoundException {
         this.name = file.getName();
-        loadStructure(new FileInputStream(file));
+        InputStream stream = new FileInputStream(file);
+        loadStructure(stream);
+        IOUtils.closeQuietly(stream);
     }
 
     public String getName() {

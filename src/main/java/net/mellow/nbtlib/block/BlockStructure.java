@@ -14,6 +14,7 @@ import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
+import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.BlockMeta;
 import net.mellow.nbtlib.api.NBTStructure;
@@ -187,6 +188,9 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
 
             File structureFile = new File(structureDirectory, name + ".nbt");
 
+            boolean previousDebug = Config.debugStructures;
+            Config.debugStructures = true;
+
             try {
                 NBTStructure structure = new NBTStructure(structureFile);
 
@@ -202,7 +206,8 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
 
             } catch (FileNotFoundException ex) {
                 player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Could not load: file not found"));
-                return;
+            } finally {
+                Config.debugStructures = previousDebug;
             }
         }
 
