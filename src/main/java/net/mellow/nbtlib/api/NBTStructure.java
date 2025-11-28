@@ -330,7 +330,7 @@ public class NBTStructure {
     }
 
     // Writes out a specified area to an .nbt file with a given name
-    public static void quickSaveArea(String filename, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
+    public static File quickSaveArea(String filename, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
         NBTTagCompound structure = saveArea(world, x1, y1, z1, x2, y2, z2, exclude);
 
         try {
@@ -340,8 +340,12 @@ public class NBTStructure {
             File structureFile = new File(structureDirectory, filename);
 
             CompressedStreamTools.writeCompressed(structure, new FileOutputStream(structureFile));
+
+            return structureFile;
         } catch (Exception ex) {
             Registry.LOG.warn("Failed to save NBT structure", ex);
+
+            return null;
         }
     }
 

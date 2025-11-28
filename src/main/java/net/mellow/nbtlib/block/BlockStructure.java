@@ -1,5 +1,6 @@
 package net.mellow.nbtlib.block;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -13,6 +14,7 @@ import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.BlockMeta;
+import net.mellow.nbtlib.api.NBTStructure;
 import net.mellow.nbtlib.gui.IGuiProvider;
 import net.mellow.nbtlib.gui.ILookOverlay;
 import net.mellow.nbtlib.network.IControlReceiver;
@@ -27,10 +29,13 @@ import net.minecraft.client.gui.GuiTextField;
 import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.event.ClickEvent;
+import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.util.AxisAlignedBB;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
@@ -68,7 +73,26 @@ public class BlockStructure extends BlockContainer {
 
     @Override
     public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int side, float hitX, float hitY, float hitZ) {
+        TileEntity te = world.getTileEntity(x, y, z);
+
+        if (!(te instanceof TileEntityStructure)) return false;
+
+        TileEntityStructure structure = (TileEntityStructure) te;
+
         if (!player.isSneaking()) {
+            Block block = ModBlocks.getBlockFromStack(player.getHeldItem());
+            if (block != null && !ModBlocks.isStructureBlock(block, true)) {
+                BlockMeta bm = new BlockMeta(block, player.getHeldItem().getItemDamage());
+
+                if (structure.blacklist.contains(bm)) {
+                    structure.blacklist.remove(bm);
+                } else {
+                    structure.blacklist.add(bm);
+                }
+
+                return true;
+            }
+
             if (world.isRemote) FMLNetworkHandler.openGui(player, Registry.instance, 0, world, x, y, z);
 
             return true;
@@ -100,7 +124,7 @@ public class BlockStructure extends BlockContainer {
             if (!worldObj.isRemote && worldObj.getTotalWorldTime() % 10 == 0) {
                 NBTTagCompound data = new NBTTagCompound();
                 writeToNBT(data);
-                NetworkHandler.instance.sendToAllAround(new NBTUpdatePacket(data, xCoord, yCoord, zCoord), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 16));
+                NetworkHandler.instance.sendToAllAround(new NBTUpdatePacket(data, xCoord, yCoord, zCoord), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 64));
             }
         }
 
@@ -115,7 +139,23 @@ public class BlockStructure extends BlockContainer {
                 return;
             }
 
-            player.addChatMessage(new ChatComponentText("structure saved to: .minecraft/structures/i-lied-it-isnt-saved-yet.nbt"));
+            BlockMeta air = new BlockMeta(Blocks.air, 0);
+            blacklist.add(air);
+
+            File file = NBTStructure.quickSaveArea(name + ".nbt", worldObj, xCoord, yCoord + 1, zCoord, xCoord + sizeX - 1, yCoord + sizeY, zCoord + sizeZ - 1, blacklist);
+
+            blacklist.remove(air);
+
+            if (file == null) {
+                player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Failed to save structure"));
+                return;
+            }
+
+            ChatComponentText fileText = new ChatComponentText(file.getName());
+            fileText.getChatStyle().setChatClickEvent(new ClickEvent(ClickEvent.Action.OPEN_FILE, file.getParentFile().getAbsolutePath()));
+            fileText.getChatStyle().setUnderlined(true);
+
+            player.addChatMessage(new ChatComponentText("Saved structure as ").appendSibling(fileText));
         }
 
         @Override
@@ -180,7 +220,20 @@ public class BlockStructure extends BlockContainer {
         public List<String> printOverlay() {
             List<String> text = new ArrayList<String>();
 
+            text.add(EnumChatFormatting.GRAY + "Name: " + EnumChatFormatting.RESET + name);
+
+            text.add(EnumChatFormatting.GRAY + "Blacklist:");
+            for (BlockMeta bm : blacklist) {
+                text.add(EnumChatFormatting.RED + "- " + bm.block.getUnlocalizedName() + " : " + bm.meta);
+            }
+
             return text;
+        }
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        public AxisAlignedBB getRenderBoundingBox() {
+            return INFINITE_EXTENT_AABB;
         }
 
     }

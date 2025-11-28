@@ -70,4 +70,14 @@ public class ModBlocks {
         return ((ItemBlock) stack.getItem()).field_150939_a;
     }
 
+    // Is this block a special structure handling block, so we can ignore it for blacklist selection, etc.
+    public static boolean isStructureBlock(Block block, boolean includeAir) {
+        if (block == null) return false;
+        if (block == structure_air) return includeAir;
+        if (block == structure_block) return true;
+        if (block == structure_jigsaw) return true;
+        if (block == structure_loot) return true;
+        return false;
+    }
+
 }

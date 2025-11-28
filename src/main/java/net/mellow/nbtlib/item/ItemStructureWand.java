@@ -1,10 +1,7 @@
 package net.mellow.nbtlib.item;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -13,21 +10,20 @@ import java.util.function.ToIntFunction;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
 import net.mellow.nbtlib.api.BlockMeta;
-import net.mellow.nbtlib.api.NBTStructure;
+import net.mellow.nbtlib.block.ModBlocks;
+import net.mellow.nbtlib.block.BlockStructure.TileEntityStructure;
 import net.minecraft.block.Block;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ChatComponentText;
 import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.world.World;
 
 public class ItemStructureWand extends Item {
-
-    private static final DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd_HH.mm.ss");
 
     @Override
     @SideOnly(Side.CLIENT)
@@ -93,15 +89,33 @@ public class ItemStructureWand extends Item {
             } else {
                 setPosition(stack, 0, 0, 0);
 
-                Set<BlockMeta> blocks = getBlocks(stack);
-                blocks.add(new BlockMeta(Blocks.air, 0));
+                int minX = Math.min(x, px);
+                int minY = Math.min(y, py) - 1;
+                int minZ = Math.min(z, pz);
 
-                String filename = "structure_" + dateFormat.format(new Date()).toString() + ".nbt";
+                int sizeX = Math.abs(x - px) + 1;
+                int sizeY = Math.abs(y - py) + 1;
+                int sizeZ = Math.abs(z - pz) + 1;
 
-                NBTStructure.quickSaveArea(filename, world, x, y, z, px, py, pz, blocks);
+                world.setBlock(minX, minY, minZ, ModBlocks.structure_block);
+
+                TileEntity te = world.getTileEntity(minX, minY, minZ);
+                if (te instanceof TileEntityStructure) {
+                    TileEntityStructure structure = (TileEntityStructure) te;
+
+                    structure.sizeX = sizeX;
+                    structure.sizeY = sizeY;
+                    structure.sizeZ = sizeZ;
+
+                    structure.blacklist = getBlocks(stack);
+                } else {
+                    if (world.isRemote)
+                        player.addChatMessage(new ChatComponentText("Could not add a structure block!"));
+                    return true;
+                }
 
                 if (world.isRemote)
-                    player.addChatMessage(new ChatComponentText("Structure saved to: .minecraft/structures/" + filename));
+                    player.addChatMessage(new ChatComponentText("Structure block configured and added at: " + minX + ", " + minY + ", " + minZ));
             }
         }
 

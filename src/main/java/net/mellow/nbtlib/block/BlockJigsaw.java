@@ -62,7 +62,7 @@ public class BlockJigsaw extends BlockSideRotation {
             Block block = ModBlocks.getBlockFromStack(player.getHeldItem());
             if (block == ModBlocks.structure_air) block = Blocks.air;
 
-            if (block != null && block != ModBlocks.structure_jigsaw && block != ModBlocks.structure_loot) {
+            if (block != null && !ModBlocks.isStructureBlock(block, false)) {
                 jigsaw.replaceBlock = block;
                 jigsaw.replaceMeta = player.getHeldItem().getItemDamage();
                 jigsaw.markDirty();
