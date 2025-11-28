@@ -14,6 +14,8 @@ public class RenderTileEntityStructure extends TileEntitySpecialRenderer {
         if (!(tile instanceof TileEntityStructure)) return;
         TileEntityStructure structure = (TileEntityStructure) tile;
 
+        if (tile.getBlockMetadata() != 0) return;
+
         GL11.glPushMatrix();
         {
 

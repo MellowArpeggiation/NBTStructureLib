@@ -1,6 +1,8 @@
 package net.mellow.nbtlib.api;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,17 +74,39 @@ public class NBTStructure {
         loadStructure(stream);
     }
 
+    public NBTStructure(File file) throws FileNotFoundException {
+        this.name = file.getName();
+        loadStructure(new FileInputStream(file));
+    }
+
     public String getName() {
         return name.substring(0, name.length() - 4); // trim .nbt
     }
 
+    public int getSizeX() {
+        return size.x;
+    }
+
+    public int getSizeY() {
+        return size.y;
+    }
+
+    public int getSizeZ() {
+        return size.z;
+    }
+
     // Build a piece with a default rotation (NOT cascade safe!)
     public void build(World world, int x, int y, int z) {
-        build(world, x, y, z, 0);
+        build(world, x, y, z, 0, true, false);
     }
 
     // Build a piece with a specified rotation (NOT cascade safe!)
     public void build(World world, int x, int y, int z, int coordBaseMode) {
+        build(world, x, y, z, coordBaseMode, true, false);
+    }
+
+    // Build a piece with a specified rotation (NOT cascade safe!)
+    public void build(World world, int x, int y, int z, int coordBaseMode, boolean center, boolean wipeExisting) {
         if (!isLoaded) {
             Registry.LOG.info("NBTStructure is invalid");
             return;
@@ -90,9 +114,11 @@ public class NBTStructure {
 
         HashMap<Short, Short> worldItemPalette = getWorldItemPalette();
 
-        boolean swizzle = coordBaseMode == 1 || coordBaseMode == 3;
-        x -= (swizzle ? size.z : size.x) / 2;
-        z -= (swizzle ? size.x : size.z) / 2;
+        if (center) {
+            boolean swizzle = coordBaseMode == 1 || coordBaseMode == 3;
+            x -= (swizzle ? size.z : size.x) / 2;
+            z -= (swizzle ? size.x : size.z) / 2;
+        }
 
         int maxX = size.x;
         int maxZ = size.z;
@@ -104,7 +130,10 @@ public class NBTStructure {
 
                 for (int by = 0; by < size.y; by++) {
                     BlockState state = blockArray[bx][by][bz];
-                    if (state == null) continue;
+                    if (state == null) {
+                        if (wipeExisting) world.setBlock(rx, by + y, rz, Blocks.air, 0, 2);
+                        continue;
+                    }
 
                     int ry = by + y;
 

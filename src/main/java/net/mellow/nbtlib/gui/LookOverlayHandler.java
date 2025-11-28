@@ -5,6 +5,7 @@ import java.util.List;
 import org.lwjgl.opengl.GL11;
 
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
+import net.mellow.nbtlib.block.ModBlocks;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
@@ -34,7 +35,7 @@ public class LookOverlayHandler {
                     GL11.glPushMatrix();
                     {
 
-                        String title = I18n.format(tile.getBlockType().getUnlocalizedName() + ".name");
+                        String title = I18n.format(ModBlocks.getUnlocalizedName(tile.getBlockType(), tile.getBlockMetadata()) + ".name");
                         List<String> text = ((ILookOverlay) tile).printOverlay();
 
                         if (text != null) {

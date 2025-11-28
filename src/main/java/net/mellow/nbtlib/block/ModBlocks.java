@@ -5,6 +5,7 @@ import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.block.BlockJigsaw.TileEntityJigsaw;
 import net.mellow.nbtlib.block.BlockLoot.TileEntityLoot;
 import net.mellow.nbtlib.block.BlockStructure.TileEntityStructure;
+import net.mellow.nbtlib.item.ItemBlockMulti;
 import net.mellow.nbtlib.item.ItemBlockReplace;
 import net.mellow.nbtlib.item.ItemBlockTooltip;
 import net.minecraft.block.Block;
@@ -38,7 +39,7 @@ public class ModBlocks {
 
     private static void registerBlocks() {
 
-        register(structure_block);
+        register(structure_block, ItemBlockMulti.class);
 
         register(structure_air, ItemBlockReplace.class);
         register(structure_jigsaw);
@@ -78,6 +79,15 @@ public class ModBlocks {
         if (block == structure_jigsaw) return true;
         if (block == structure_loot) return true;
         return false;
+    }
+
+    // Helper for fetching multi-block names
+    public static String getUnlocalizedName(Block block, int meta) {
+        if (block instanceof IBlockMulti) {
+            return ((IBlockMulti) block).getUnlocalizedName(meta);
+        }
+
+        return block.getUnlocalizedName();
     }
 
 }

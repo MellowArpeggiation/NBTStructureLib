@@ -1,6 +1,7 @@
 package net.mellow.nbtlib.block;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -23,6 +24,7 @@ import net.mellow.nbtlib.network.NetworkHandler;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockContainer;
 import net.minecraft.block.material.Material;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
 import net.minecraft.client.gui.GuiTextField;
@@ -41,7 +43,7 @@ import net.minecraft.util.EnumChatFormatting;
 import net.minecraft.util.IIcon;
 import net.minecraft.world.World;
 
-public class BlockStructure extends BlockContainer {
+public class BlockStructure extends BlockContainer implements IBlockMulti {
 
     private IIcon saveIcon;
     private IIcon loadIcon;
@@ -106,7 +108,21 @@ public class BlockStructure extends BlockContainer {
     public void getSubBlocks(Item itemIn, CreativeTabs tab, List<ItemStack> list) {
         list.add(new ItemStack(itemIn, 1, 0));
         list.add(new ItemStack(itemIn, 1, 1));
-        list.add(new ItemStack(itemIn, 1, 2));
+
+        // no corners for now
+        // list.add(new ItemStack(itemIn, 1, 2));
+    }
+
+    @Override
+    public String getUnlocalizedName(int meta) {
+        if (meta == 1) return getUnlocalizedName() + ".load";
+        if (meta == 2) return getUnlocalizedName() + ".corner";
+        return getUnlocalizedName() + ".save";
+    }
+
+    @Override
+    public int damageDropped(int meta) {
+        return meta;
     }
 
     public static class TileEntityStructure extends TileEntity implements IControlReceiver, IGuiProvider, ILookOverlay {
@@ -158,6 +174,36 @@ public class BlockStructure extends BlockContainer {
             player.addChatMessage(new ChatComponentText("Saved structure as ").appendSibling(fileText));
         }
 
+        public void loadStructure(EntityPlayer player) {
+            if (name.isEmpty()) {
+                player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Could not load: no filename specified"));
+                return;
+            }
+
+            File structureDirectory = new File(Minecraft.getMinecraft().mcDataDir, "structures");
+            structureDirectory.mkdir();
+
+            File structureFile = new File(structureDirectory, name + ".nbt");
+
+            try {
+                NBTStructure structure = new NBTStructure(structureFile);
+
+                sizeX = structure.getSizeX();
+                sizeY = structure.getSizeY();
+                sizeZ = structure.getSizeZ();
+
+                structure.build(worldObj, xCoord, yCoord + 1, zCoord, 0, false, true);
+
+                worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, 0, 3);
+
+                player.addChatMessage(new ChatComponentText("Structure loaded"));
+
+            } catch (FileNotFoundException ex) {
+                player.addChatMessage(new ChatComponentText(EnumChatFormatting.RED + "Could not load: file not found"));
+                return;
+            }
+        }
+
         @Override
         public void readFromNBT(NBTTagCompound nbt) {
             super.readFromNBT(nbt);
@@ -204,6 +250,10 @@ public class BlockStructure extends BlockContainer {
             if (nbt.getBoolean("save")) {
                 saveStructure(player);
             }
+
+            if (nbt.getBoolean("load")) {
+                loadStructure(player);
+            }
         }
 
         @Override
@@ -213,7 +263,9 @@ public class BlockStructure extends BlockContainer {
 
         @Override
         public Object provideGUI(int ID, EntityPlayer player, World world, int x, int y, int z) {
-            return new GuiStructure(this);
+            int meta = worldObj.getBlockMetadata(x, y, z);
+            if (meta == 1) return new GuiStructureLoad(this);
+            return new GuiStructureSave(this);
         }
 
         @Override
@@ -238,7 +290,7 @@ public class BlockStructure extends BlockContainer {
 
     }
 
-    public static class GuiStructure extends GuiScreen {
+    public static class GuiStructureSave extends GuiScreen {
 
         private final TileEntityStructure tile;
 
@@ -252,7 +304,7 @@ public class BlockStructure extends BlockContainer {
 
         private boolean saveOnClose = false;
 
-        public GuiStructure(TileEntityStructure tile) {
+        public GuiStructureSave(TileEntityStructure tile) {
             this.tile = tile;
         }
 
@@ -330,6 +382,84 @@ public class BlockStructure extends BlockContainer {
 
             if (performAction.mousePressed(mc, mouseX, mouseY)) {
                 saveOnClose = true;
+
+                mc.displayGuiScreen(null);
+                mc.setIngameFocus();
+            }
+        }
+
+        @Override
+        public boolean doesGuiPauseGame() {
+            return false;
+        }
+
+    }
+
+        public static class GuiStructureLoad extends GuiScreen {
+
+        private final TileEntityStructure tile;
+
+        private GuiTextField textName;
+
+        private GuiButton performAction;
+
+        private boolean loadOnClose = false;
+
+        public GuiStructureLoad(TileEntityStructure tile) {
+            this.tile = tile;
+        }
+
+        @Override
+        public void initGui() {
+            Keyboard.enableRepeatEvents(true);
+
+            textName = new GuiTextField(fontRendererObj, width / 2 - 150, 50, 300, 20);
+            textName.setText(tile.name);
+
+            performAction = new GuiButton(0, width / 2 - 150, 150, 300, 20, "LOAD");
+        }
+
+        @Override
+        public void drawScreen(int mouseX, int mouseY, float partialTicks) {
+            drawDefaultBackground();
+
+            textName.drawTextBox();
+
+            performAction.drawButton(mc, mouseX, mouseY);
+
+            super.drawScreen(mouseX, mouseY, partialTicks);
+        }
+
+        @Override
+        public void onGuiClosed() {
+            Keyboard.enableRepeatEvents(false);
+
+            NBTTagCompound data = new NBTTagCompound();
+            tile.writeToNBT(data);
+
+            data.setString("name", textName.getText());
+
+            if (loadOnClose) data.setBoolean("load", true);
+
+            tile.readFromNBT(data);
+
+            NetworkHandler.instance.sendToServer(new NBTUpdatePacket(data, tile.xCoord, tile.yCoord, tile.zCoord));
+        }
+
+        @Override
+        protected void keyTyped(char typedChar, int keyCode) {
+            super.keyTyped(typedChar, keyCode);
+
+            textName.textboxKeyTyped(typedChar, keyCode);
+        }
+
+        @Override
+        protected void mouseClicked(int mouseX, int mouseY, int mouseButton) {
+            super.mouseClicked(mouseX, mouseY, mouseButton);
+            textName.mouseClicked(mouseX, mouseY, mouseButton);
+
+            if (performAction.mousePressed(mc, mouseX, mouseY)) {
+                loadOnClose = true;
 
                 mc.displayGuiScreen(null);
                 mc.setIngameFocus();
