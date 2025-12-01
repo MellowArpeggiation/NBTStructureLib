@@ -143,7 +143,7 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
             if (!worldObj.isRemote && worldObj.getTotalWorldTime() % 10 == 0) {
                 NBTTagCompound data = new NBTTagCompound();
                 writeToNBT(data);
-                NetworkHandler.instance.sendToAllAround(new NBTUpdatePacket(data, xCoord, yCoord, zCoord), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 64));
+                NetworkHandler.instance.sendToAllAround(new NBTUpdatePacket(data, xCoord, yCoord, zCoord), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 256));
             }
         }
 
@@ -293,6 +293,12 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
         @SideOnly(Side.CLIENT)
         public AxisAlignedBB getRenderBoundingBox() {
             return INFINITE_EXTENT_AABB;
+        }
+
+        @Override
+        @SideOnly(Side.CLIENT)
+        public double getMaxRenderDistanceSquared() {
+            return 65536.0D;
         }
 
     }

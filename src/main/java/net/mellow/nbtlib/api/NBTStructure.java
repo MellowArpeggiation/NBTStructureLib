@@ -575,7 +575,7 @@ public class NBTStructure {
 
         for (int i = 0; i < items.tagCount(); i++) {
             NBTTagCompound item = items.getCompoundTagAt(i);
-            item.setShort("id", palette.get(item.getShort("id")));
+			item.setShort("id", palette.getOrDefault(item.getShort("id"), (short)0));
         }
     }
 
