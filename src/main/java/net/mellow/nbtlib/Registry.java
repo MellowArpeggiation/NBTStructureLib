@@ -1,5 +1,7 @@
 package net.mellow.nbtlib;
 
+import java.util.Map;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -11,8 +13,10 @@ import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
+import cpw.mods.fml.common.network.NetworkCheckHandler;
+import cpw.mods.fml.relauncher.Side;
 
-@Mod(modid = Registry.MODID, version = Tags.VERSION, name = "NBTStructureLib", acceptedMinecraftVersions = "[1.7.10]", acceptableRemoteVersions = "*")
+@Mod(modid = Registry.MODID, version = Tags.VERSION, name = "NBTStructureLib", acceptedMinecraftVersions = "[1.7.10]")
 public class Registry {
 
     public static final String MODID = "nbtlib";
@@ -42,6 +46,12 @@ public class Registry {
     @Mod.EventHandler
     public void serverStarting(FMLServerStartingEvent event) {
         proxy.serverStarting(event);
+    }
+
+    @NetworkCheckHandler
+    public boolean checkModLists(Map<String, String> remoteVersions, Side side) {
+        if (!Config.registerOnDedicated) return true;
+        return remoteVersions.containsKey(MODID) ? Tags.VERSION.equals(remoteVersions.get(MODID)) : side == Side.SERVER;
     }
 
     // For registering named objects

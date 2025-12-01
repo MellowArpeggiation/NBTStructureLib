@@ -98,14 +98,25 @@ public class CommonProxy {
     private Map<String, Block> serverBlockRegistry = new HashMap<>();
 
     public void registerBlock(Block block, Class<? extends ItemBlock> itemclass, String name) {
+        if (Config.registerOnDedicated) {
+            GameRegistry.registerBlock(block, itemclass, name);
+            return;
+        }
+
         serverBlockRegistry.put(Registry.addPrefix(name), block);
     }
 
     public void registerItem(Item item, String name) {
-
+        if (Config.registerOnDedicated) {
+            GameRegistry.registerItem(item, name);
+        }
     }
 
     public Block getBlockFromName(String name) {
+        if (Config.registerOnDedicated) {
+            return Block.getBlockFromName(name);
+        }
+
         Block block = Block.getBlockFromName(name);
         if (block != null) return block;
 
