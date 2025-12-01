@@ -1,5 +1,6 @@
 package net.mellow.nbtlib.api;
 
+import net.mellow.nbtlib.Registry;
 import net.minecraft.block.Block;
 import net.minecraft.init.Blocks;
 
@@ -9,7 +10,7 @@ public class BlockMeta {
     public final int meta;
 
     public BlockMeta(String name, int meta) {
-        Block block = Block.getBlockFromName(name);
+        Block block = Registry.proxy.getBlockFromName(name);
         if (block == null) block = Blocks.air;
 
         this.block = block;

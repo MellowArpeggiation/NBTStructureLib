@@ -2,6 +2,7 @@ package net.mellow.nbtlib;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Map;
 
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPostInitializationEvent;
@@ -22,6 +23,9 @@ import net.mellow.nbtlib.gui.GuiHandler;
 import net.mellow.nbtlib.item.ModItems;
 import net.mellow.nbtlib.network.NetworkHandler;
 import net.mellow.nbtlib.pack.StructurePackLoader;
+import net.minecraft.block.Block;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.minecraft.launchwrapper.Launch;
 import net.minecraft.world.World;
 import net.minecraftforge.common.MinecraftForge;
@@ -89,6 +93,23 @@ public class CommonProxy {
 
     public void serverStarting(FMLServerStartingEvent event) {
         event.registerServerCommand(new CommandLocate());
+    }
+
+    private Map<String, Block> serverBlockRegistry = new HashMap<>();
+
+    public void registerBlock(Block block, Class<? extends ItemBlock> itemclass, String name) {
+        serverBlockRegistry.put(Registry.addPrefix(name), block);
+    }
+
+    public void registerItem(Item item, String name) {
+
+    }
+
+    public Block getBlockFromName(String name) {
+        Block block = Block.getBlockFromName(name);
+        if (block != null) return block;
+
+        return serverBlockRegistry.get(name);
     }
 
     public SpawnCondition getStructureAt(World world, int chunkX, int chunkZ) {

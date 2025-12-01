@@ -6,11 +6,15 @@ import cpw.mods.fml.client.registry.ClientRegistry;
 import cpw.mods.fml.client.registry.RenderingRegistry;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
+import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.block.BlockStructure.TileEntityStructure;
 import net.mellow.nbtlib.gui.LookOverlayHandler;
 import net.mellow.nbtlib.render.RenderBlockSideRotation;
 import net.mellow.nbtlib.render.RenderTileEntityStructure;
+import net.minecraft.block.Block;
 import net.minecraft.client.Minecraft;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemBlock;
 import net.mellow.nbtlib.render.RenderBlockReplace;
 import net.minecraftforge.common.MinecraftForge;
 
@@ -45,6 +49,21 @@ public class ClientProxy extends CommonProxy {
 
         ClientRegistry.bindTileEntitySpecialRenderer(TileEntityStructure.class, new RenderTileEntityStructure());
 
+    }
+
+    @Override
+    public void registerBlock(Block block, Class<? extends ItemBlock> itemclass, String name) {
+        GameRegistry.registerBlock(block, itemclass, name);
+    }
+
+    @Override
+    public void registerItem(Item item, String name) {
+        GameRegistry.registerItem(item, name);
+    }
+
+    @Override
+    public Block getBlockFromName(String name) {
+        return Block.getBlockFromName(name);
     }
 
     @Override

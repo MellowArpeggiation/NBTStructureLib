@@ -1,6 +1,5 @@
 package net.mellow.nbtlib.item;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Registry;
 import net.minecraft.item.Item;
 
@@ -26,7 +25,7 @@ public class ModItems {
     }
 
     private static void register(Item item) {
-        GameRegistry.registerItem(item, item.getUnlocalizedName());
+        Registry.proxy.registerItem(item, item.getUnlocalizedName());
     }
 
 }

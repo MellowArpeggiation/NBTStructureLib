@@ -57,11 +57,11 @@ public class ModBlocks {
     }
 
     private static void register(Block block) {
-        GameRegistry.registerBlock(block, ItemBlockTooltip.class, block.getUnlocalizedName());
+        Registry.proxy.registerBlock(block, ItemBlockTooltip.class, block.getUnlocalizedName());
     }
 
     private static void register(Block block, Class<? extends ItemBlock> itemClass) {
-        GameRegistry.registerBlock(block, itemClass, block.getUnlocalizedName());
+        Registry.proxy.registerBlock(block, itemClass, block.getUnlocalizedName());
     }
 
     public static Block getBlockFromStack(ItemStack stack) {

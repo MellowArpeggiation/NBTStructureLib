@@ -12,7 +12,7 @@ import cpw.mods.fml.common.event.FMLPostInitializationEvent;
 import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.event.FMLServerStartingEvent;
 
-@Mod(modid = Registry.MODID, version = Tags.VERSION, name = "NBTStructureLib", acceptedMinecraftVersions = "[1.7.10]")
+@Mod(modid = Registry.MODID, version = Tags.VERSION, name = "NBTStructureLib", acceptedMinecraftVersions = "[1.7.10]", acceptableRemoteVersions = "*")
 public class Registry {
 
     public static final String MODID = "nbtlib";
