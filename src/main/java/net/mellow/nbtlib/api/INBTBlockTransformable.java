@@ -2,17 +2,20 @@ package net.mellow.nbtlib.api;
 
 import net.minecraft.block.Block;
 
+/**
+ * Defines this block as something that has a rotation or some other blockstate
+ * which needs transformations applied when building from an .nbt structure file
+ */
 public interface INBTBlockTransformable {
 
     /**
-     * Defines this block as something that has a rotation or some other blockstate
-     * which needs transformations applied when building from an .nbt structure file
+     * Takes the block current meta and translates it into a rotated meta
      */
-
-    // Takes the block current meta and translates it into a rotated meta
     public int transformMeta(int meta, int coordBaseMode);
 
-    // Takes the block and turns it into a different block entirely, to turn off lights, shit like that
+    /**
+     * Takes the block and turns it into a different block entirely, to turn off lights, shit like that
+     */
     public default Block transformBlock(Block block) {
         return block;
     }

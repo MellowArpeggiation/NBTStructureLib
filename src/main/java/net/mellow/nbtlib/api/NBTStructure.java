@@ -146,12 +146,17 @@ public class NBTStructure {
                     Block block = transformBlock(state.definition, null, world.rand);
                     int meta = transformMeta(state.definition, null, coordBaseMode);
 
-                    world.setBlock(rx, ry, rz, block, meta, 2);
-
+                    TileEntity te = null;
                     if (state.nbt != null) {
-                        TileEntity te = buildTileEntity(world, block, worldItemPalette, state.nbt, coordBaseMode);
-                        world.setTileEntity(rx, ry, rz, te);
+                        te = buildTileEntity(world, block, meta, worldItemPalette, state.nbt, coordBaseMode);
+                        if (te != null) {
+                            block = te.blockType;
+                            meta = te.blockMetadata;
+                        }
                     }
+
+                    world.setBlock(rx, ry, rz, block, meta, 2);
+                    world.setTileEntity(rx, ry, rz, te);
                 }
             }
         }
@@ -225,12 +230,17 @@ public class NBTStructure {
                     Block block = transformBlock(state.definition, piece.blockTable, world.rand);
                     int meta = transformMeta(state.definition, piece.blockTable, coordBaseMode);
 
-                    world.setBlock(rx, ry, rz, block, meta, 2);
-
+                    TileEntity te = null;
                     if (state.nbt != null) {
-                        TileEntity te = buildTileEntity(world, block, worldItemPalette, state.nbt, coordBaseMode);
-                        world.setTileEntity(rx, ry, rz, te);
+                        te = buildTileEntity(world, block, meta, worldItemPalette, state.nbt, coordBaseMode);
+                        if (te != null) {
+                            block = te.blockType;
+                            meta = te.blockMetadata;
+                        }
                     }
+
+                    world.setBlock(rx, ry, rz, block, meta, 2);
+                    world.setTileEntity(rx, ry, rz, te);
 
                     if (by == 0 && piece.platform != null && !block.getMaterial().isReplaceable()) hasBase = true;
                 }
@@ -537,18 +547,25 @@ public class NBTStructure {
         return worldItemPalette;
     }
 
-    private TileEntity buildTileEntity(World world, Block block, HashMap<Short, Short> worldItemPalette, NBTTagCompound nbt, int coordBaseMode) {
+    private TileEntity buildTileEntity(World world, Block block, int meta, HashMap<Short, Short> worldItemPalette, NBTTagCompound nbt, int coordBaseMode) {
         nbt = (NBTTagCompound) nbt.copy();
 
         if (worldItemPalette != null) relinkItems(worldItemPalette, nbt);
 
-        TileEntity te = TileEntity.createAndLoadEntity(nbt);
+        TileEntity tile = TileEntity.createAndLoadEntity(nbt);
+        if (tile == null) return null;
 
-        if (te instanceof INBTTileEntityTransformable) {
-            ((INBTTileEntityTransformable) te).transformTE(world, coordBaseMode);
+        tile.blockType = block;
+        tile.blockMetadata = meta;
+
+        if (!Config.debugStructures && tile instanceof INBTTileEntityTransformable) {
+            TileEntity newTile = ((INBTTileEntityTransformable) tile).transformTE(world, coordBaseMode);
+            if (newTile != null && newTile.blockType != null) {
+                tile = newTile;
+            }
         }
 
-        return te;
+        return tile;
     }
 
     // What a fucken mess, why even implement the IntArray NBT if ye aint gonna use
@@ -575,7 +592,7 @@ public class NBTStructure {
 
         for (int i = 0; i < items.tagCount(); i++) {
             NBTTagCompound item = items.getCompoundTagAt(i);
-			item.setShort("id", palette.getOrDefault(item.getShort("id"), (short)0));
+            item.setShort("id", palette.getOrDefault(item.getShort("id"), (short)0));
         }
     }
 
@@ -615,7 +632,7 @@ public class NBTStructure {
         if (definition.block instanceof BlockLadder) return INBTBlockTransformable.transformMetaSignLadder(definition.meta, coordBaseMode);
         if (definition.block instanceof BlockTripWireHook) return INBTBlockTransformable.transformMetaDirectional(definition.meta, coordBaseMode);
         if (definition.block instanceof BlockVine) return INBTBlockTransformable.transformMetaVine(definition.meta, coordBaseMode);
-		if (definition.block instanceof BlockTrapDoor) return INBTBlockTransformable.transformMetaTrapdoor(definition.meta, coordBaseMode);
+        if (definition.block instanceof BlockTrapDoor) return INBTBlockTransformable.transformMetaTrapdoor(definition.meta, coordBaseMode);
 
         return definition.meta;
     }

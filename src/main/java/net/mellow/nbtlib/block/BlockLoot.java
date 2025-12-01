@@ -2,18 +2,14 @@ package net.mellow.nbtlib.block;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import org.lwjgl.input.Keyboard;
-
-import com.mojang.authlib.GameProfile;
 
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
 import cpw.mods.fml.common.network.internal.FMLNetworkHandler;
 import cpw.mods.fml.common.registry.GameRegistry;
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.INBTTileEntityTransformable;
 import net.mellow.nbtlib.gui.IGuiProvider;
@@ -38,10 +34,7 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.MathHelper;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import net.minecraftforge.common.ChestGenHooks;
-import net.minecraftforge.common.util.FakePlayer;
-import net.minecraftforge.common.util.FakePlayerFactory;
 
 public class BlockLoot extends BlockSideRotation {
 
@@ -71,10 +64,6 @@ public class BlockLoot extends BlockSideRotation {
         if (i == 1) world.setBlockMetadataWithNotify(x, y, z, 5, 2);
         if (i == 2) world.setBlockMetadataWithNotify(x, y, z, 3, 2);
         if (i == 3) world.setBlockMetadataWithNotify(x, y, z, 4, 2);
-
-        TileEntity te = world.getTileEntity(x, y, z);
-        if (!(te instanceof TileEntityLoot)) return;
-        ((TileEntityLoot) te).placedRotation = player.rotationYaw;
     }
 
     @Override
@@ -117,8 +106,6 @@ public class BlockLoot extends BlockSideRotation {
 
     public static class TileEntityLoot extends TileEntity implements IControlReceiver, IGuiProvider, ILookOverlay, INBTTileEntityTransformable {
 
-        private boolean triggerReplace;
-
         private String lootCategory = ChestGenHooks.DUNGEON_CHEST;
         private Block replaceBlock = Blocks.chest;
         private int replaceMeta;
@@ -126,70 +113,14 @@ public class BlockLoot extends BlockSideRotation {
         private int minItems;
         private int maxItems = 1;
 
-        private float placedRotation;
-
-        private static final GameProfile FAKE_PROFILE = new GameProfile(UUID.fromString("839eb18c-50bc-400c-8291-9383f09763e7"), "[nbtlib]");
-        private static FakePlayer fakePlayer;
+        private int[] rotMetas = { 0, 0, 0, 0 };
 
         @Override
         public void updateEntity() {
             if (!worldObj.isRemote) {
-                if (triggerReplace) {
-                    // On the first tick of this TE, replace with intended block and fill with loot
-                    replace();
-                } else {
-                    NBTTagCompound data = new NBTTagCompound();
-                    writeToNBT(data);
-                    NetworkHandler.instance.sendToAllAround(new NBTUpdatePacket(data, xCoord, yCoord, zCoord), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 16));
-                }
-            }
-        }
-
-        private void replace() {
-            if (!(worldObj.getBlock(xCoord, yCoord, zCoord) instanceof BlockLoot)) {
-                Registry.LOG.warn("Somehow the block at: " + xCoord + ", " + yCoord + ", " + zCoord + " isn't a loot block but we're doing a TE update as if it is, cancelling!");
-                return;
-            }
-
-            WeightedRandomChestContent[] pool = ChestGenHooks.getItems(lootCategory, worldObj.rand);
-
-            worldObj.setBlock(xCoord, yCoord, zCoord, replaceBlock, replaceMeta, 2);
-
-            TileEntity te = worldObj.getTileEntity(xCoord, yCoord, zCoord);
-
-            if (te == null || te instanceof TileEntityLoot) {
-                // Some generator has broken the TE->block relationship, which, honestly, rude.
-                // so we're just gonna hop in and force update the TE
-
-                Registry.LOG.warn("TE set incorrectly at: " + xCoord + ", " + yCoord + ", " + zCoord + ". If you're using some sort of world generation mod, report it to the author!");
-
-                te = replaceBlock.createTileEntity(worldObj, replaceMeta);
-                worldObj.setTileEntity(xCoord, yCoord, zCoord, te);
-            }
-
-            if (te instanceof IInventory) {
-                int count = minItems;
-                if (maxItems - minItems > 0) count += worldObj.rand.nextInt(maxItems - minItems);
-                count = (int)Math.floor(count);
-                WeightedRandomChestContent.generateChestContents(worldObj.rand, pool, (IInventory) te, count);
-            }
-
-            // Shouldn't happen but let's guard anyway, if it fails we just don't rotate the chest block correctly
-            if (!(worldObj instanceof WorldServer)) return;
-
-            try {
-                if (fakePlayer == null || fakePlayer.worldObj != worldObj) {
-                    fakePlayer = FakePlayerFactory.get((WorldServer)worldObj, FAKE_PROFILE);
-                }
-
-                fakePlayer.rotationYaw = fakePlayer.rotationYawHead = placedRotation;
-
-                ItemStack fakeStack = new ItemStack(replaceBlock, 1, replaceMeta);
-
-                replaceBlock.onBlockPlacedBy(worldObj, xCoord, yCoord, zCoord, fakePlayer, fakeStack);
-            } catch(Exception ex) {
-                Registry.LOG.warn("Failed to correctly rotate loot block at: " + xCoord + ", " + yCoord + ", " + zCoord);
-                Registry.LOG.catching(ex);
+                NBTTagCompound data = new NBTTagCompound();
+                writeToNBT(data);
+                NetworkHandler.instance.sendToAllAround(new NBTUpdatePacket(data, xCoord, yCoord, zCoord), new TargetPoint(worldObj.provider.dimensionId, xCoord, yCoord, zCoord, 16));
             }
         }
 
@@ -202,9 +133,6 @@ public class BlockLoot extends BlockSideRotation {
             nbt.setInteger("min", minItems);
             nbt.setInteger("max", maxItems);
             nbt.setString("category", lootCategory);
-            nbt.setFloat("rot", placedRotation);
-
-            nbt.setBoolean("trigger", triggerReplace);
         }
 
         @Override
@@ -215,11 +143,8 @@ public class BlockLoot extends BlockSideRotation {
             minItems = nbt.getInteger("min");
             maxItems = nbt.getInteger("max");
             lootCategory = nbt.getString("category");
-            placedRotation = nbt.getFloat("rot");
 
             if (replaceBlock == null) replaceBlock = Blocks.chest;
-
-            triggerReplace = nbt.getBoolean("trigger");
         }
 
         @Override
@@ -257,9 +182,20 @@ public class BlockLoot extends BlockSideRotation {
         }
 
         @Override
-        public void transformTE(World world, int coordBaseMode) {
-            triggerReplace = !Config.debugStructures;
-            placedRotation = MathHelper.wrapAngleTo180_float(placedRotation + coordBaseMode * 90);
+        public TileEntity transformTE(World world, int coordBaseMode) {
+            TileEntity te = replaceBlock.createTileEntity(world, replaceMeta);
+            te.blockType = replaceBlock;
+            te.blockMetadata = rotMetas[coordBaseMode];
+
+            if (te instanceof IInventory) {
+                WeightedRandomChestContent[] pool = ChestGenHooks.getItems(lootCategory, world.rand);
+                int count = minItems;
+                if (maxItems - minItems > 0) count += world.rand.nextInt(maxItems - minItems);
+                count = (int)Math.floor(count);
+                WeightedRandomChestContent.generateChestContents(world.rand, pool, (IInventory) te, count);
+            }
+
+            return te;
         }
 
     }
