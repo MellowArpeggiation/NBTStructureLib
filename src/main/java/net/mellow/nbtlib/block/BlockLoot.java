@@ -35,6 +35,7 @@ import net.minecraft.util.MathHelper;
 import net.minecraft.util.WeightedRandomChestContent;
 import net.minecraft.world.World;
 import net.minecraftforge.common.ChestGenHooks;
+import net.minecraftforge.common.util.ForgeDirection;
 
 public class BlockLoot extends BlockSideRotation {
 
@@ -64,6 +65,10 @@ public class BlockLoot extends BlockSideRotation {
         if (i == 1) world.setBlockMetadataWithNotify(x, y, z, 5, 2);
         if (i == 2) world.setBlockMetadataWithNotify(x, y, z, 3, 2);
         if (i == 3) world.setBlockMetadataWithNotify(x, y, z, 4, 2);
+
+        TileEntity te = world.getTileEntity(x, y, z);
+        if (!(te instanceof TileEntityLoot)) return;
+        ((TileEntityLoot) te).updateLootBlock(player, Blocks.chest, 0, itemStack);
     }
 
     @Override
@@ -75,13 +80,13 @@ public class BlockLoot extends BlockSideRotation {
         TileEntityLoot loot = (TileEntityLoot) te;
 
         if (!player.isSneaking()) {
-            if (player.getHeldItem() != null && player.getHeldItem().getItem() == ModItems.structure_wand) return false;
+            ItemStack held = player.getHeldItem();
+            if (held != null && held.getItem() == ModItems.structure_wand) return false;
 
-            Block block = getLootableBlock(world, player.getHeldItem());
+            Block block = getLootableBlock(world, held);
 
             if (block != null) {
-                loot.replaceBlock = block;
-                loot.replaceMeta = player.getHeldItem().getItemDamage();
+                loot.updateLootBlock(player, block, held.getItemDamage(), held);
             } else {
                 if (world.isRemote) FMLNetworkHandler.openGui(player, Registry.instance, 0, world, x, y, z);
             }
@@ -124,6 +129,54 @@ public class BlockLoot extends BlockSideRotation {
             }
         }
 
+        // Tries to figure out the rotation metas for this loot block
+        public void updateLootBlock(EntityLivingBase placer, Block block, int meta, ItemStack stack) {
+            if (worldObj.isRemote) return;
+
+            replaceBlock = block;
+            replaceMeta = meta;
+
+            ForgeDirection dir = ForgeDirection.getOrientation(worldObj.getBlockMetadata(xCoord, yCoord, zCoord));
+
+            float placedYaw = getYaw(dir);
+            float placerYaw = placer.rotationYaw;
+            float placerYawHead = placer.rotationYawHead;
+
+            Block wasBlock = worldObj.getBlock(xCoord, yCoord + 1, zCoord);
+            int wasMeta = worldObj.getBlockMetadata(xCoord, yCoord + 1, zCoord);
+            TileEntity wasTe = worldObj.getTileEntity(xCoord, yCoord + 1, zCoord);
+
+            worldObj.removeTileEntity(xCoord, yCoord + 1, zCoord);
+            worldObj.setBlock(xCoord, yCoord + 1, zCoord, replaceBlock, replaceMeta, 2);
+
+            for (int i = 0; i < 4; i++) {
+                placer.rotationYaw = placer.rotationYawHead = MathHelper.wrapAngleTo180_float(placedYaw + i * 90);
+                replaceBlock.onBlockPlacedBy(worldObj, xCoord, yCoord + 1, zCoord, placer, stack);
+
+                rotMetas[i] = worldObj.getBlockMetadata(xCoord, yCoord + 1, zCoord);
+            }
+
+            worldObj.setBlock(xCoord, yCoord + 1, zCoord, wasBlock, wasMeta, 2);
+
+            if (wasTe != null) {
+                wasTe.validate(); // put that back
+                worldObj.setTileEntity(xCoord, yCoord + 1, zCoord, wasTe);
+            }
+
+            placer.rotationYaw = placerYaw;
+            placer.rotationYawHead = placerYawHead;
+        }
+
+        private float getYaw(ForgeDirection dir) {
+            switch (dir) {
+                case NORTH: return 0;
+                case SOUTH: return 180;
+                case EAST: return 90;
+                case WEST: return -90;
+                default: return 0;
+            }
+        }
+
         @Override
         public void writeToNBT(NBTTagCompound nbt) {
             super.writeToNBT(nbt);
@@ -133,6 +186,7 @@ public class BlockLoot extends BlockSideRotation {
             nbt.setInteger("min", minItems);
             nbt.setInteger("max", maxItems);
             nbt.setString("category", lootCategory);
+            nbt.setIntArray("rotMetas", rotMetas);
         }
 
         @Override
@@ -143,6 +197,7 @@ public class BlockLoot extends BlockSideRotation {
             minItems = nbt.getInteger("min");
             maxItems = nbt.getInteger("max");
             lootCategory = nbt.getString("category");
+            if (nbt.hasKey("rotMetas")) rotMetas = nbt.getIntArray("rotMetas");
 
             if (replaceBlock == null) replaceBlock = Blocks.chest;
         }

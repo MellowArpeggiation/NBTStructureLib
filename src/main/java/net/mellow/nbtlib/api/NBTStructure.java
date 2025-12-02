@@ -156,6 +156,7 @@ public class NBTStructure {
                     }
 
                     world.setBlock(rx, ry, rz, block, meta, 2);
+                    world.setBlockMetadataWithNotify(rx, ry, rz, meta, 2);
                     world.setTileEntity(rx, ry, rz, te);
                 }
             }
@@ -239,7 +240,9 @@ public class NBTStructure {
                         }
                     }
 
-                    world.setBlock(rx, ry, rz, block, meta, 2);
+                    // `flag: 0`: we can skip sending any client updates since this whole chunk hasn't been sent yet
+                    world.setBlock(rx, ry, rz, block, meta, 0);
+                    world.setBlockMetadataWithNotify(rx, ry, rz, meta, 0); // fucking Mojang bullshit I'll just set it TWICE then
                     world.setTileEntity(rx, ry, rz, te);
 
                     if (by == 0 && piece.platform != null && !block.getMaterial().isReplaceable()) hasBase = true;
@@ -249,7 +252,7 @@ public class NBTStructure {
                     for (int y = oy - 1; y > 0; y--) {
                         if (!world.getBlock(rx, y, rz).isReplaceable(world, rx, y, rz)) break;
                         piece.platform.selectBlocks(world.rand, 0, 0, 0, false);
-                        world.setBlock(rx, y, rz, piece.platform.func_151561_a(), piece.platform.getSelectedBlockMetaData(), 2);
+                        world.setBlock(rx, y, rz, piece.platform.func_151561_a(), piece.platform.getSelectedBlockMetaData(), 0);
                     }
                 }
             }
@@ -419,6 +422,10 @@ public class NBTStructure {
 
                 palette[i] = new BlockMeta(blockName, meta);
 
+                if (!Config.debugStructures && palette[i].block == ModBlocks.structure_block) {
+                    palette[i] = new BlockMeta(Blocks.air, 0);
+                }
+
                 if (Config.debugStructures && palette[i].block == Blocks.air) {
                     palette[i] = new BlockMeta(ModBlocks.structure_air, meta);
                 }
@@ -560,8 +567,8 @@ public class NBTStructure {
 
         if (!Config.debugStructures && tile instanceof INBTTileEntityTransformable) {
             TileEntity newTile = ((INBTTileEntityTransformable) tile).transformTE(world, coordBaseMode);
-            if (newTile != null && newTile.blockType != null) {
-                tile = newTile;
+            if (newTile != null && newTile.blockType != null && newTile.blockMetadata >= 0) {
+                return newTile;
             }
         }
 

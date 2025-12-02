@@ -11,7 +11,7 @@ public class Config {
     public static boolean debugSpawning = false;
     public static boolean debugStructures = false;
 
-    public static boolean registerOnDedicated = false;
+    public static boolean registerOnDedicated = true;
 
     public static int structureMinChunks = 8;
     public static int structureMaxChunks = 24;
