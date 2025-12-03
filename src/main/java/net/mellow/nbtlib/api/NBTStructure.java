@@ -135,7 +135,11 @@ public class NBTStructure {
                 for (int by = 0; by < size.y; by++) {
                     BlockState state = blockArray[bx][by][bz];
                     if (state == null) {
-                        if (wipeExisting) world.setBlock(rx, by + y, rz, Blocks.air, 0, 2);
+                        if (wipeExisting) {
+                            int ry = by + y;
+                            world.removeTileEntity(rx, ry, rz);
+                            world.setBlock(rx, ry, rz, Blocks.air, 0, 2);
+                        }
                         continue;
                     }
 
