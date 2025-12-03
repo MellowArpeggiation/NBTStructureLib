@@ -21,6 +21,7 @@ import com.google.gson.JsonParser;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.NBTStructure;
 import net.minecraft.world.biome.BiomeGenBase;
+import net.minecraft.world.gen.structure.StructureComponent.BlockSelector;
 import net.minecraftforge.common.BiomeDictionary;
 
 public abstract class AbstractStructurePack implements Closeable {
@@ -108,6 +109,8 @@ public abstract class AbstractStructurePack implements Closeable {
         public boolean alignToTerrain = false;
         public boolean conformToTerrain = false;
 
+        public BlockSelector platform;
+
         private JigsawPieceMeta() { }
 
         public static JigsawPieceMeta getDefault() {
@@ -145,6 +148,17 @@ public abstract class AbstractStructurePack implements Closeable {
 
             if (json.has("conformToTerrain"))
                 conformToTerrain = json.get("conformToTerrain").getAsBoolean();
+
+            if (json.has("platform")) {
+                String name = json.get("platform").getAsString();
+                try {
+                    Class<? extends BlockSelector> platformClass = Class.forName(name).asSubclass(BlockSelector.class);
+                    platform = platformClass.newInstance();
+
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException ex) {
+                    Registry.LOG.error("Could not load platform class: " + name);
+                }
+            }
         }
 
     }

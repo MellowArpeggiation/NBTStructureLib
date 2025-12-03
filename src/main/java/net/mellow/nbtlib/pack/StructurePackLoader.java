@@ -54,6 +54,7 @@ public class StructurePackLoader {
                     structure = new JigsawPiece(pack.getPackName() + ":" + basic.pair.structure.getName(), basic.pair.structure, basic.pair.pieceMeta.heightOffset) {{
                         alignToTerrain = basic.pair.pieceMeta.alignToTerrain;
                         conformToTerrain = basic.pair.pieceMeta.conformToTerrain;
+                        platform = basic.pair.pieceMeta.platform;
                     }};
                     canSpawn = basic.spawnMeta::canSpawn;
                     spawnWeight = basic.pair.pieceMeta.weight;
@@ -85,6 +86,7 @@ public class StructurePackLoader {
                     pool.add(new JigsawPiece(pack.getPackName() + ":" + piece.pool + ":" + piece.structure.getName(), piece.structure, piece.pieceMeta.heightOffset) {{
                         alignToTerrain = piece.pieceMeta.alignToTerrain;
                         conformToTerrain = piece.pieceMeta.conformToTerrain;
+                        platform = piece.pieceMeta.platform;
                     }}, piece.pieceMeta.weight);
                 }
 
@@ -135,7 +137,9 @@ public class StructurePackLoader {
                 if (extension.pair.pieceMeta.weight <= 0) extension.pair.pieceMeta.weight = pool.getAverageWeight();
 
                 pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.pair.structure.getName(), extension.pair.structure, extension.pair.pieceMeta.heightOffset) {{
+                    alignToTerrain = extension.pair.pieceMeta.alignToTerrain;
                     conformToTerrain = extension.pair.pieceMeta.conformToTerrain;
+                    platform = extension.pair.pieceMeta.platform;
                 }}, extension.pair.pieceMeta.weight);
             }
 

@@ -51,7 +51,7 @@ public class FileStructurePack extends AbstractStructurePack {
                     StructurePair pair = new StructurePair(structure, getJigsawMeta(name));
                     structures.add(new StructureBasic(pair, getSpawnMeta(name)));
                 } catch (IOException ex) {
-                    // TODO
+                    ex.printStackTrace();
                 }
             }
         }
@@ -79,7 +79,7 @@ public class FileStructurePack extends AbstractStructurePack {
 
                     structures.add(new StructureExtension(segments[0], segments[1], segments[2], new StructurePair(structure, getJigsawMeta(name))));
                 } catch (IOException ex) {
-                    // TODO
+                    ex.printStackTrace();
                 }
             }
         }
@@ -118,7 +118,7 @@ public class FileStructurePack extends AbstractStructurePack {
 
                     jigsaw.add(segments[1], pair);
                 } catch (IOException ex) {
-                    // TODO
+                    ex.printStackTrace();
                 }
             }
         }
