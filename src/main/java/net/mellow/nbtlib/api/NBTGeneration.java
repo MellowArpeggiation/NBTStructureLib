@@ -141,10 +141,10 @@ public class NBTGeneration {
             switch (this.coordBaseMode) {
             case 1:
             case 3:
-                this.boundingBox = new StructureBoundingBox(x, y, z, x + piece.structure.size.z - 1, y + piece.structure.size.y - 1, z + piece.structure.size.x - 1);
+                this.boundingBox = new StructureBoundingBox(x, y, z, x + piece.structure.size.z - 1, y + piece.structure.size.y, z + piece.structure.size.x - 1);
                 break;
             default:
-                this.boundingBox = new StructureBoundingBox(x, y, z, x + piece.structure.size.x - 1, y + piece.structure.size.y - 1, z + piece.structure.size.z - 1);
+                this.boundingBox = new StructureBoundingBox(x, y, z, x + piece.structure.size.x - 1, y + piece.structure.size.y, z + piece.structure.size.z - 1);
                 break;
             }
         }
@@ -338,7 +338,8 @@ public class NBTGeneration {
                             continue; // if we already connected to this piece, don't process
 
                         if (fallbacksOnly) {
-                            String fallback = spawn.pools.get(fromConnection.poolName).fallback;
+                            JigsawPool pool = spawn.pools.get(fromConnection.poolName);
+                            String fallback = pool != null ? pool.fallback : null;
 
                             if (fallback != null) {
                                 Component fallbackComponent = buildNextComponent(rand, spawn, spawn.pools.get(fallback), fromComponent, fromConnection);

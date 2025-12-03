@@ -32,12 +32,12 @@ public class FolderStructurePack extends AbstractStructurePack {
     }
 
     @Override
-    public List<StructurePair> loadBasicStructures() {
-        List<StructurePair> structures = new ArrayList<>();
+    public List<StructureBasic> loadBasicStructures() {
+        List<StructureBasic> structures = new ArrayList<>();
 
         for (File file : dir.listFiles(structureFilter)) {
             StructurePair pair = loadPair(file);
-            if (pair != null) structures.add(pair);
+            if (pair != null) structures.add(new StructureBasic(pair, loadSpawn(file)));
         }
 
         return structures;
@@ -73,6 +73,34 @@ public class FolderStructurePack extends AbstractStructurePack {
         return structures;
     }
 
+    @Override
+    public List<StructureJigsaw> loadJigsawStructures() {
+        List<StructureJigsaw> structures = new ArrayList<>();
+
+        for (File spawnFolder : dir.listFiles()) {
+            if (!spawnFolder.isDirectory()) continue;
+
+            String spawnConditionName = spawnFolder.getName();
+
+            SpawnConditionMeta spawnMeta = loadSpawn(spawnFolder);
+            StructureJigsaw jigsaw = new StructureJigsaw(spawnConditionName, spawnMeta);
+
+            for (File poolFolder : spawnFolder.listFiles()) {
+                if (!poolFolder.isDirectory()) continue;
+
+                String poolName = poolFolder.getName();
+                for (File structureFile : poolFolder.listFiles(structureFilter)) {
+                    StructurePair pair = loadPair(structureFile);
+                    if (pair != null) jigsaw.add(poolName, pair);
+                }
+            }
+
+            if (jigsaw.pieces.size() > 0) structures.add(jigsaw);
+        }
+
+        return structures;
+    }
+
     private StructurePair loadPair(File file) {
         try {
             NBTStructure structure = new NBTStructure(file.getName(), new FileInputStream(file));
@@ -83,15 +111,40 @@ public class FolderStructurePack extends AbstractStructurePack {
                 }
             };
 
-            StructureMeta meta = null;
+            JigsawPieceMeta meta = null;
             for (File mcmeta : file.getParentFile().listFiles(filter)) {
-                meta = StructureMeta.load(new FileInputStream(mcmeta));
+                meta = JigsawPieceMeta.load(new FileInputStream(mcmeta));
                 break;
             }
 
-            if (meta == null) meta = StructureMeta.getDefault();
+            if (meta == null) meta = JigsawPieceMeta.getDefault();
 
             return new StructurePair(structure, meta);
+
+        } catch (FileNotFoundException ex) {
+            // squelch, for now
+        }
+
+        return null;
+    }
+
+    private SpawnConditionMeta loadSpawn(File file) {
+        try {
+            FileFilter filter = new FileFilter() {
+                public boolean accept(File check) {
+                    return check.isFile() && check.getName().equals(file.getName() + ".mcmeta");
+                }
+            };
+
+            SpawnConditionMeta meta = null;
+            for (File mcmeta : file.getParentFile().listFiles(filter)) {
+                meta = SpawnConditionMeta.load(new FileInputStream(mcmeta));
+                break;
+            }
+
+            if (meta == null) meta = SpawnConditionMeta.getDefault();
+
+            return meta;
 
         } catch (FileNotFoundException ex) {
             // squelch, for now

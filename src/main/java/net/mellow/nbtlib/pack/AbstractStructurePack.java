@@ -26,43 +26,96 @@ import net.minecraftforge.common.BiomeDictionary;
 public abstract class AbstractStructurePack implements Closeable {
 
     public abstract String getPackName();
-    public abstract List<StructurePair> loadBasicStructures();
+    public abstract List<StructureBasic> loadBasicStructures();
     public abstract List<StructureExtension> loadExtensionStructures();
+    public abstract List<StructureJigsaw> loadJigsawStructures();
 
     public static class StructurePair {
 
         public final NBTStructure structure;
-        public final StructureMeta meta;
+        public final JigsawPieceMeta pieceMeta;
 
-        public StructurePair(NBTStructure structure, StructureMeta meta) {
+        public StructurePair(NBTStructure structure, JigsawPieceMeta meta) {
             this.structure = structure;
-            this.meta = meta;
+            this.pieceMeta = meta;
         }
 
     }
 
-    public static class StructureMeta {
+    public static class StructurePairPool extends StructurePair {
+
+        public final String pool;
+
+        public StructurePairPool(String pool, NBTStructure structure, JigsawPieceMeta meta) {
+            super(structure, meta);
+            this.pool = pool;
+        }
+
+    }
+
+    public static class StructureBasic {
+
+        public final StructurePair pair;
+        public final SpawnConditionMeta spawnMeta;
+
+        public StructureBasic(StructurePair pair, SpawnConditionMeta spawnMeta) {
+            this.pair = pair;
+            this.spawnMeta = spawnMeta;
+        }
+
+    }
+
+    public static class StructureExtension {
+
+        public final String targetModId;
+        public final String targetSpawnCondition;
+        public final String targetPool;
+        public final StructurePair pair;
+
+        public StructureExtension(String modId, String spawnCondition, String pool, StructurePair pair) {
+            this.targetModId = modId;
+            this.targetSpawnCondition = spawnCondition;
+            this.targetPool = pool;
+            this.pair = pair;
+        }
+
+    }
+
+    public static class StructureJigsaw {
+
+        public final String name;
+        public final SpawnConditionMeta spawnMeta;
+        public final List<StructurePairPool> pieces;
+
+        public StructureJigsaw(String name, SpawnConditionMeta spawnMeta) {
+            this.name = name;
+            this.spawnMeta = spawnMeta;
+            this.pieces = new ArrayList<>();
+        }
+
+        public void add(String name, StructurePair pair) {
+            pieces.add(new StructurePairPool(name, pair.structure, pair.pieceMeta));
+        }
+
+    }
+
+    public static class JigsawPieceMeta {
 
         public int weight = 0;
 
         public int heightOffset = -1;
-        public int minHeight = 1;
-        public int maxHeight = 128;
 
+        public boolean alignToTerrain = false;
         public boolean conformToTerrain = false;
 
-        public List<Integer> validDimensions;
-        private Set<BiomeDictionary.Type> validBiomeTypes;
-        private List<Predicate<BiomeGenBase>> conditions = new ArrayList<>();
+        private JigsawPieceMeta() { }
 
-        private StructureMeta() { }
-
-        public static StructureMeta getDefault() {
-            return new StructureMeta();
+        public static JigsawPieceMeta getDefault() {
+            return new JigsawPieceMeta();
         }
 
-        public static StructureMeta load(InputStream stream) {
-            StructureMeta meta = new StructureMeta();
+        public static JigsawPieceMeta load(InputStream stream) {
+            JigsawPieceMeta meta = new JigsawPieceMeta();
 
             BufferedReader reader = null;
             try {
@@ -72,7 +125,7 @@ public abstract class AbstractStructurePack implements Closeable {
                 meta.loadFromJson(json);
             } catch (Exception ex) {
                 // TODO: which file failed?
-                Registry.LOG.error("[StructurePack] failed to load .mcmeta for a structure");
+                Registry.LOG.error("[StructurePack] failed to load .mcmeta for a JigsawPiece");
             } finally {
                 IOUtils.closeQuietly(reader);
             }
@@ -87,15 +140,60 @@ public abstract class AbstractStructurePack implements Closeable {
             if (json.has("heightOffset"))
                 heightOffset = json.get("heightOffset").getAsInt();
 
+            if (json.has("alignToTerrain"))
+                alignToTerrain = json.get("alignToTerrain").getAsBoolean();
+
+            if (json.has("conformToTerrain"))
+                conformToTerrain = json.get("conformToTerrain").getAsBoolean();
+        }
+
+    }
+
+    public static class SpawnConditionMeta {
+
+        public int weight = 0;
+
+        public int minHeight = 1;
+        public int maxHeight = 128;
+
+        public String startPool = "start";
+
+        public List<Integer> validDimensions;
+        private Set<BiomeDictionary.Type> validBiomeTypes;
+        private List<Predicate<BiomeGenBase>> conditions = new ArrayList<>();
+
+        private SpawnConditionMeta() { }
+
+        public static SpawnConditionMeta getDefault() {
+            return new SpawnConditionMeta();
+        }
+
+        public static SpawnConditionMeta load(InputStream stream) {
+            SpawnConditionMeta meta = new SpawnConditionMeta();
+
+            BufferedReader reader = null;
+            try {
+                reader = new BufferedReader(new InputStreamReader(stream));
+                JsonObject json = (new JsonParser().parse(reader)).getAsJsonObject();
+
+                meta.loadFromJson(json);
+            } catch (Exception ex) {
+                // TODO: which file failed?
+                Registry.LOG.error("[StructurePack] failed to load .mcmeta for a SpawnCondition");
+            } finally {
+                IOUtils.closeQuietly(reader);
+            }
+
+            return meta;
+        }
+
+        private void loadFromJson(JsonObject json) {
+
             if (json.has("minHeight"))
                 minHeight = json.get("minHeight").getAsInt();
 
             if (json.has("maxHeight"))
                 maxHeight = json.get("maxHeight").getAsInt();
-
-            if (json.has("conformToTerrain"))
-                conformToTerrain = json.get("conformToTerrain").getAsBoolean();
-
 
             if (json.has("canSpawn")) {
                 JsonObject canSpawn = json.getAsJsonObject("canSpawn");
@@ -182,22 +280,6 @@ public abstract class AbstractStructurePack implements Closeable {
                 float value = json.get("gte").getAsFloat();
                 conditions.add(biome -> supplier.apply(biome) >= value);
             }
-        }
-
-    }
-
-    public static class StructureExtension {
-
-        public final String targetModId;
-        public final String targetSpawnCondition;
-        public final String targetPool;
-        public final StructurePair pair;
-
-        public StructureExtension(String modId, String spawnCondition, String pool, StructurePair pair) {
-            this.targetModId = modId;
-            this.targetSpawnCondition = spawnCondition;
-            this.targetPool = pool;
-            this.pair = pair;
         }
 
     }

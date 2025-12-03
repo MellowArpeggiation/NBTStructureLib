@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -34,8 +35,8 @@ public class FileStructurePack extends AbstractStructurePack {
     }
 
     @Override
-    public List<StructurePair> loadBasicStructures() {
-        List<StructurePair> structures = new ArrayList<>();
+    public List<StructureBasic> loadBasicStructures() {
+        List<StructureBasic> structures = new ArrayList<>();
         if (zipFile == null) return structures;
 
         Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
@@ -47,7 +48,8 @@ public class FileStructurePack extends AbstractStructurePack {
             if (name.endsWith(".nbt") && !name.contains("/")) {
                 try {
                     NBTStructure structure = new NBTStructure(name, zipFile.getInputStream(entry));
-                    structures.add(new StructurePair(structure, getMeta(name)));
+                    StructurePair pair = new StructurePair(structure, getJigsawMeta(name));
+                    structures.add(new StructureBasic(pair, getSpawnMeta(name)));
                 } catch (IOException ex) {
                     // TODO
                 }
@@ -75,7 +77,7 @@ public class FileStructurePack extends AbstractStructurePack {
 
                     NBTStructure structure = new NBTStructure(segments[3], zipFile.getInputStream(entry));
 
-                    structures.add(new StructureExtension(segments[0], segments[1], segments[2], new StructurePair(structure, getMeta(name))));
+                    structures.add(new StructureExtension(segments[0], segments[1], segments[2], new StructurePair(structure, getJigsawMeta(name))));
                 } catch (IOException ex) {
                     // TODO
                 }
@@ -85,12 +87,59 @@ public class FileStructurePack extends AbstractStructurePack {
         return structures;
     }
 
-    private StructureMeta getMeta(String name) throws IOException {
+    @Override
+    public List<StructureJigsaw> loadJigsawStructures() {
+        List<StructureJigsaw> structures = new ArrayList<>();
+        if (zipFile == null) return structures;
+
+        HashMap<String, StructureJigsaw> structureMap = new HashMap<>();
+
+        Enumeration<? extends ZipEntry> enumeration = zipFile.entries();
+        while (enumeration.hasMoreElements()) {
+            ZipEntry entry = enumeration.nextElement();
+
+            // Grab structure jigsaw .nbt files
+            String name = entry.getName();
+            if (name.endsWith(".nbt")) {
+                try {
+                    String[] segments = name.split("/");
+                    if (segments.length != 3) continue;
+
+                    StructureJigsaw jigsaw = structureMap.get(segments[0]);
+                    if (jigsaw == null) {
+                        jigsaw = new StructureJigsaw(segments[0], getSpawnMeta(segments[0]));
+
+                        structures.add(jigsaw);
+                        structureMap.put(segments[0], jigsaw);
+                    }
+
+                    NBTStructure structure = new NBTStructure(segments[2], zipFile.getInputStream(entry));
+                    StructurePair pair = new StructurePair(structure, getJigsawMeta(name));
+
+                    jigsaw.add(segments[1], pair);
+                } catch (IOException ex) {
+                    // TODO
+                }
+            }
+        }
+
+        return structures;
+    }
+
+    private JigsawPieceMeta getJigsawMeta(String name) throws IOException {
         ZipEntry entry = zipFile.getEntry(name + ".mcmeta");
 
-        if (entry == null) return StructureMeta.getDefault();
+        if (entry == null) return JigsawPieceMeta.getDefault();
 
-        return StructureMeta.load(zipFile.getInputStream(entry));
+        return JigsawPieceMeta.load(zipFile.getInputStream(entry));
+    }
+
+    private SpawnConditionMeta getSpawnMeta(String name) throws IOException {
+        ZipEntry entry = zipFile.getEntry(name + ".mcmeta");
+
+        if (entry == null) return SpawnConditionMeta.getDefault();
+
+        return SpawnConditionMeta.load(zipFile.getInputStream(entry));
     }
 
     @Override

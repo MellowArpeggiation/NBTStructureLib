@@ -2,6 +2,7 @@ package net.mellow.nbtlib.pack;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.util.HashMap;
 
 import org.apache.commons.io.IOUtils;
 
@@ -10,8 +11,10 @@ import net.mellow.nbtlib.api.JigsawPiece;
 import net.mellow.nbtlib.api.JigsawPool;
 import net.mellow.nbtlib.api.NBTGeneration;
 import net.mellow.nbtlib.api.SpawnCondition;
+import net.mellow.nbtlib.pack.AbstractStructurePack.StructureBasic;
 import net.mellow.nbtlib.pack.AbstractStructurePack.StructureExtension;
-import net.mellow.nbtlib.pack.AbstractStructurePack.StructurePair;
+import net.mellow.nbtlib.pack.AbstractStructurePack.StructureJigsaw;
+import net.mellow.nbtlib.pack.AbstractStructurePack.StructurePairPool;
 
 /**
  * Custom structures added without code!
@@ -39,28 +42,73 @@ public class StructurePackLoader {
 
             // Basic non-jigsaw structures with no specified spawning conditions
             // Grabs every .nbt file at the ROOT of the structurepack!
-            for (StructurePair basicPair : pack.loadBasicStructures()) {
-                if (basicPair.meta.weight <= 0) basicPair.meta.weight = 1;
+            for (StructureBasic basic : pack.loadBasicStructures()) {
+                if (basic.pair.pieceMeta.weight <= 0) basic.pair.pieceMeta.weight = 1;
 
                 int[] dimensions = {0};
-                if (basicPair.meta.validDimensions != null) {
-                    dimensions = basicPair.meta.validDimensions.stream().mapToInt(i -> (int)i).toArray();
+                if (basic.spawnMeta.validDimensions != null) {
+                    dimensions = basic.spawnMeta.validDimensions.stream().mapToInt(i -> (int)i).toArray();
                 }
 
-                NBTGeneration.registerStructure(dimensions, new SpawnCondition(pack.getPackName(), basicPair.structure.getName()) {{
-                    structure = new JigsawPiece(pack.getPackName() + ":" + basicPair.structure.getName(), basicPair.structure, basicPair.meta.heightOffset) {{
-                        conformToTerrain = basicPair.meta.conformToTerrain;
+                NBTGeneration.registerStructure(dimensions, new SpawnCondition(pack.getPackName(), basic.pair.structure.getName()) {{
+                    structure = new JigsawPiece(pack.getPackName() + ":" + basic.pair.structure.getName(), basic.pair.structure, basic.pair.pieceMeta.heightOffset) {{
+                        alignToTerrain = basic.pair.pieceMeta.alignToTerrain;
+                        conformToTerrain = basic.pair.pieceMeta.conformToTerrain;
                     }};
-                    canSpawn = basicPair.meta::canSpawn;
-                    spawnWeight = basicPair.meta.weight;
-                    minHeight = basicPair.meta.minHeight;
-                    maxHeight = basicPair.meta.maxHeight;
+                    canSpawn = basic.spawnMeta::canSpawn;
+                    spawnWeight = basic.pair.pieceMeta.weight;
+                    minHeight = basic.spawnMeta.minHeight;
+                    maxHeight = basic.spawnMeta.maxHeight;
                 }});
             }
+
+            // Iterates through folders looking for fully formed jigsaw structures!
+            // Pack your structurepacks like so:
+            //     spawncondition/pool/structure.nbt
+            // Place an .mcmeta at the root to change the default spawn conditions
+            //     spawncondition.mcmeta
+            for (StructureJigsaw jigsaw : pack.loadJigsawStructures()) {
+                if (jigsaw.spawnMeta.weight <= 0) jigsaw.spawnMeta.weight = 1;
+
+                int[] dimensions = {0};
+                if (jigsaw.spawnMeta.validDimensions != null) {
+                    dimensions = jigsaw.spawnMeta.validDimensions.stream().mapToInt(i -> (int)i).toArray();
+                }
+
+                HashMap<String, JigsawPool> jigsawPools = new HashMap<>();
+
+                for (StructurePairPool piece : jigsaw.pieces) {
+                    if (piece.pieceMeta.weight <= 0) piece.pieceMeta.weight = 1;
+
+                    JigsawPool pool = jigsawPools.computeIfAbsent(piece.pool, p -> new JigsawPool());
+
+                    pool.add(new JigsawPiece(pack.getPackName() + ":" + piece.pool + ":" + piece.structure.getName(), piece.structure, piece.pieceMeta.heightOffset) {{
+                        alignToTerrain = piece.pieceMeta.alignToTerrain;
+                        conformToTerrain = piece.pieceMeta.conformToTerrain;
+                    }}, piece.pieceMeta.weight);
+                }
+
+                NBTGeneration.registerStructure(dimensions, new SpawnCondition(pack.getPackName(), jigsaw.name) {{
+                    startPool = jigsaw.spawnMeta.startPool;
+                    pools = jigsawPools;
+                    canSpawn = jigsaw.spawnMeta::canSpawn;
+                    spawnWeight = jigsaw.spawnMeta.weight;
+                    minHeight = jigsaw.spawnMeta.minHeight;
+                    maxHeight = jigsaw.spawnMeta.maxHeight;
+                }});
+            }
+
+            IOUtils.closeQuietly(pack);
+        }
+
+        // Iterate on additional structure pieces separately, so packs can add to packs!
+        for (File file : structurePackDir.listFiles(structurePackFilter)) {
+            AbstractStructurePack pack = file.isDirectory() ? new FolderStructurePack(file) : new FileStructurePack(file);
 
             // Iterates through folders, looking for .nbt files to add to existing mod structure pools!
             // Pack your structurepacks like so:
             //     modid/spawncondition/pool/structure.nbt
+            // modid for structurepack structures is the file/folder name NOT including .zip
             for (StructureExtension extension : pack.loadExtensionStructures()) {
                 SpawnCondition spawn = NBTGeneration.getStructure(extension.targetModId, extension.targetSpawnCondition);
 
@@ -84,11 +132,11 @@ public class StructurePackLoader {
                 }
 
                 // If no defined weight, make this piece have an average weight
-                if (extension.pair.meta.weight <= 0) extension.pair.meta.weight = pool.getAverageWeight();
+                if (extension.pair.pieceMeta.weight <= 0) extension.pair.pieceMeta.weight = pool.getAverageWeight();
 
-                pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.pair.structure.getName(), extension.pair.structure, extension.pair.meta.heightOffset) {{
-                    conformToTerrain = extension.pair.meta.conformToTerrain;
-                }}, extension.pair.meta.weight);
+                pool.add(new JigsawPiece(pack.getPackName() + ":" + extension.pair.structure.getName(), extension.pair.structure, extension.pair.pieceMeta.heightOffset) {{
+                    conformToTerrain = extension.pair.pieceMeta.conformToTerrain;
+                }}, extension.pair.pieceMeta.weight);
             }
 
             IOUtils.closeQuietly(pack);
