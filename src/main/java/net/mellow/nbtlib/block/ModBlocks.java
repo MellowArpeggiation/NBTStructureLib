@@ -3,6 +3,7 @@ package net.mellow.nbtlib.block;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.block.BlockJigsaw.TileEntityJigsaw;
+import net.mellow.nbtlib.block.BlockJigsawTandem.TileEntityJigsawTandem;
 import net.mellow.nbtlib.block.BlockLoot.TileEntityLoot;
 import net.mellow.nbtlib.block.BlockStructure.TileEntityStructure;
 import net.mellow.nbtlib.item.ItemBlockMulti;
@@ -25,6 +26,7 @@ public class ModBlocks {
 
     public static Block structure_air;
     public static Block structure_jigsaw;
+    public static Block structure_tandem;
     public static Block structure_loot;
 
     private static void initBlocks() {
@@ -33,6 +35,7 @@ public class ModBlocks {
 
         structure_air = new BlockReplace(Blocks.air).setBlockName("structure_air").setBlockTextureName(Registry.MODID + ":structure_air");
         structure_jigsaw = new BlockJigsaw().setBlockName("structure_jigsaw");
+        structure_tandem = new BlockJigsawTandem().setBlockName("structure_tandem");
         structure_loot = new BlockLoot().setBlockName("structure_loot");
 
     }
@@ -43,6 +46,7 @@ public class ModBlocks {
 
         register(structure_air, ItemBlockReplace.class);
         register(structure_jigsaw);
+        register(structure_tandem);
         register(structure_loot);
 
     }
@@ -52,6 +56,7 @@ public class ModBlocks {
         GameRegistry.registerTileEntity(TileEntityStructure.class, "tileentity_structure");
 
         GameRegistry.registerTileEntity(TileEntityJigsaw.class, "tileentity_structure_jigsaw");
+        GameRegistry.registerTileEntity(TileEntityJigsawTandem.class, "tileentity_structure_tandem");
         GameRegistry.registerTileEntity(TileEntityLoot.class, "tileentity_structure_loot");
 
     }
@@ -77,6 +82,7 @@ public class ModBlocks {
         if (block == structure_air) return includeAir;
         if (block == structure_block) return true;
         if (block == structure_jigsaw) return true;
+        if (block == structure_tandem) return true;
         if (block == structure_loot) return true;
         return false;
     }
