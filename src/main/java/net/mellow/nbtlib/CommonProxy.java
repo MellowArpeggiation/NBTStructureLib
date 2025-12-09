@@ -13,6 +13,7 @@ import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.api.JigsawPiece;
 import net.mellow.nbtlib.api.JigsawPool;
 import net.mellow.nbtlib.api.NBTGeneration;
+import net.mellow.nbtlib.api.NBTQueue;
 import net.mellow.nbtlib.api.SpawnCondition;
 import net.mellow.nbtlib.api.selector.BiomeFillerSelector;
 import net.mellow.nbtlib.api.selector.BrickSelector;
@@ -52,6 +53,7 @@ public class CommonProxy {
         MinecraftForge.EVENT_BUS.register(worldGenerator);
 
         NBTGeneration.register();
+        NBTQueue.init();
 
         if (Config.spawnTestStructure) {
             NBTGeneration.registerStructure(0, new SpawnCondition("example_structure") {{

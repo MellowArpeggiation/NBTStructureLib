@@ -25,8 +25,6 @@ public class BlockJigsawTandem extends BlockJigsaw {
 
     public static class TileEntityJigsawTandem extends TileEntityJigsaw {
 
-
-
     }
 
 }

@@ -82,14 +82,14 @@ public class BlockJigsaw extends BlockSideRotation {
 
     public static class TileEntityJigsaw extends TileEntity implements IControlReceiver, IGuiProvider, ILookOverlay {
 
-        private int selectionPriority = 0; // higher priority = this jigsaw block is selected first for generation
-        private int placementPriority = 0; // higher priority = children of this jigsaw block are checked for jigsaw blocks of their own and selected first
-        private String pool = "default";
-        private String name = "default";
-        private String target = "default";
-        private Block replaceBlock = Blocks.air;
-        private int replaceMeta = 0;
-        private boolean isRollable = true; // sets joint type, rollable joints can be placed in any orientation for vertical jigsaw connections
+        public int selectionPriority = 0; // higher priority = this jigsaw block is selected first for generation
+        public int placementPriority = 0; // higher priority = children of this jigsaw block are checked for jigsaw blocks of their own and selected first
+        public String pool = "default";
+        public String name = "default";
+        public String target = "default";
+        public Block replaceBlock = Blocks.air;
+        public int replaceMeta = 0;
+        public boolean isRollable = true; // sets joint type, rollable joints can be placed in any orientation for vertical jigsaw connections
 
         @Override
         public void updateEntity() {

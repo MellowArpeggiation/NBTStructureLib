@@ -111,14 +111,16 @@ public class NBTGeneration {
 
     public static class Component extends StructureComponent {
 
-        JigsawPiece piece;
+        private JigsawPiece piece;
 
-        int minHeight = 1;
-        int maxHeight = 128;
+        private int minHeight = 1;
+        private int maxHeight = 128;
 
-        boolean heightUpdated = false;
+        private boolean heightUpdated = false;
 
-        int priority;
+        private int priority;
+
+        private String spawnName;
 
         // this is fucking hacky but we need a way to update ALL component bounds once a Y-level is determined
         private Start parent;
@@ -137,6 +139,7 @@ public class NBTGeneration {
             this.piece = piece;
             this.minHeight = spawn.minHeight;
             this.maxHeight = spawn.maxHeight;
+            this.spawnName = spawn.name;
 
             switch (this.coordBaseMode) {
             case 1:
@@ -161,6 +164,7 @@ public class NBTGeneration {
             nbt.setInteger("min", minHeight);
             nbt.setInteger("max", maxHeight);
             nbt.setBoolean("hasHeight", heightUpdated);
+            nbt.setString("spawnName", spawnName);
         }
 
         // Load from NBT
@@ -170,6 +174,7 @@ public class NBTGeneration {
             minHeight = nbt.getInteger("min");
             maxHeight = nbt.getInteger("max");
             heightUpdated = nbt.getBoolean("hasHeight");
+            spawnName = nbt.getString("spawnName");
         }
 
         @Override
@@ -188,7 +193,8 @@ public class NBTGeneration {
                 }
             }
 
-            return piece.structure.build(world, piece, boundingBox, box, coordBaseMode);
+            // `flag: 0`: we can skip sending any client updates since this whole chunk hasn't been sent yet
+            return piece.structure.build(world, rand, spawnName, piece, boundingBox, box, coordBaseMode, 0);
         }
 
         public void offsetYHeight(int y) {
@@ -349,10 +355,10 @@ public class NBTGeneration {
                         }
 
                         JigsawPool nextPool = spawn.getPool(fromConnection.poolName);
-						if (nextPool == null) {
-							Registry.LOG.warn("[Jigsaw] Jigsaw block points to invalid pool: " + fromConnection.poolName);
-							continue;
-						}
+                        if (nextPool == null) {
+                            Registry.LOG.warn("[Jigsaw] Jigsaw block points to invalid pool: " + fromConnection.poolName);
+                            continue;
+                        }
 
                         Component nextComponent = null;
 

@@ -17,6 +17,7 @@ import net.mellow.nbtlib.api.selector.BiomeBlockSelector;
 import net.mellow.nbtlib.block.BlockPos;
 import net.mellow.nbtlib.block.BlockReplace;
 import net.mellow.nbtlib.block.ModBlocks;
+import net.mellow.nbtlib.block.BlockJigsawTandem.TileEntityJigsawTandem;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
@@ -153,12 +154,21 @@ public class NBTStructure {
                     TileEntity te = null;
                     if (state.nbt != null) {
                         te = buildTileEntity(world, block, meta, worldItemPalette, state.nbt, coordBaseMode);
-                        if (te != null) {
+
+                        if (!Config.debugStructures && te instanceof TileEntityJigsawTandem) {
+                            TileEntityJigsawTandem tandem = (TileEntityJigsawTandem) te;
+
+                            block = tandem.replaceBlock;
+                            meta = tandem.replaceMeta;
+
+                            te = null;
+                        } else if (te != null) {
                             block = te.blockType;
                             meta = te.blockMetadata;
                         }
                     }
 
+                    world.removeTileEntity(rx, ry, rz);
                     world.setBlock(rx, ry, rz, block, meta, 2);
                     world.setBlockMetadataWithNotify(rx, ry, rz, meta, 2);
                     world.setTileEntity(rx, ry, rz, te);
@@ -168,7 +178,7 @@ public class NBTStructure {
     }
 
     // Builds a structure piece within a given bounds (will not cascade, assuming the bounds provided are valid!)
-    public boolean build(World world, JigsawPiece piece, StructureBoundingBox totalBounds, StructureBoundingBox generatingBounds, int coordBaseMode) {
+    public boolean build(World world, Random rand, String structureName, JigsawPiece piece, StructureBoundingBox totalBounds, StructureBoundingBox generatingBounds, int coordBaseMode, int flag) {
         if (!isLoaded) {
             Registry.LOG.info("NBTStructure is invalid");
             return false;
@@ -238,15 +248,26 @@ public class NBTStructure {
                     TileEntity te = null;
                     if (state.nbt != null) {
                         te = buildTileEntity(world, block, meta, worldItemPalette, state.nbt, coordBaseMode);
-                        if (te != null) {
+
+                        if (!Config.debugStructures && te instanceof TileEntityJigsawTandem) {
+                            TileEntityJigsawTandem tandem = (TileEntityJigsawTandem) te;
+                            int tandemMeta = state.nbt.getInteger("direction");
+                            ForgeDirection dir = ForgeDirection.getOrientation(INBTBlockTransformable.transformMetaSignLadder(tandemMeta, coordBaseMode));
+
+                            NBTQueue.queueStructurePiece(structureName, tandem.pool, tandem.target, world, rand, rx, ry, rz, dir);
+
+                            block = tandem.replaceBlock;
+                            meta = tandem.replaceMeta;
+
+                            te = null;
+                        } else if (te != null) {
                             block = te.blockType;
                             meta = te.blockMetadata;
                         }
                     }
 
-                    // `flag: 0`: we can skip sending any client updates since this whole chunk hasn't been sent yet
-                    world.setBlock(rx, ry, rz, block, meta, 0);
-                    world.setBlockMetadataWithNotify(rx, ry, rz, meta, 0); // fucking Mojang bullshit I'll just set it TWICE then
+                    world.setBlock(rx, ry, rz, block, meta, flag);
+                    world.setBlockMetadataWithNotify(rx, ry, rz, meta, flag); // fucking Mojang bullshit I'll just set it TWICE then
                     world.setTileEntity(rx, ry, rz, te);
 
                     if (by == 0 && piece.platform != null && !block.getMaterial().isReplaceable()) hasBase = true;
@@ -256,7 +277,7 @@ public class NBTStructure {
                     for (int y = oy - 1; y > 0; y--) {
                         if (!world.getBlock(rx, y, rz).isReplaceable(world, rx, y, rz)) break;
                         piece.platform.selectBlocks(world.rand, 0, 0, 0, false);
-                        world.setBlock(rx, y, rz, piece.platform.func_151561_a(), piece.platform.getSelectedBlockMetaData(), 0);
+                        world.setBlock(rx, y, rz, piece.platform.func_151561_a(), piece.platform.getSelectedBlockMetaData(), flag);
                     }
                 }
             }
