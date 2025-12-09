@@ -443,7 +443,7 @@ public class NBTGeneration {
                 }
             }
 
-            List<JigsawConnection> connectionPool = getConnectionPool(nextPiece, fromConnection);
+            List<JigsawConnection> connectionPool = nextPiece.structure.getConnectionPool(fromConnection.dir, fromConnection.targetName);
             if (connectionPool == null || connectionPool.isEmpty()) {
                 Registry.LOG.warn("[Jigsaw] No valid connections for: " + fromConnection.targetName + " - in piece: " + nextPiece.name);
                 return null;
@@ -478,16 +478,6 @@ public class NBTGeneration {
             }
 
             return requiredPieces;
-        }
-
-        private List<JigsawConnection> getConnectionPool(JigsawPiece nextPiece, JigsawConnection fromConnection) {
-            if (fromConnection.dir == ForgeDirection.DOWN) {
-                return nextPiece.structure.toTopConnections.get(fromConnection.targetName);
-            } else if (fromConnection.dir == ForgeDirection.UP) {
-                return nextPiece.structure.toBottomConnections.get(fromConnection.targetName);
-            }
-
-            return nextPiece.structure.toHorizontalConnections.get(fromConnection.targetName);
         }
 
         private int getDistanceTo(StructureBoundingBox box) {

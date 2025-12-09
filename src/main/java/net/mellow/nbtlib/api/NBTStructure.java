@@ -100,6 +100,16 @@ public class NBTStructure {
         return size.z;
     }
 
+    public List<JigsawConnection> getConnectionPool(ForgeDirection dir, String target) {
+        if (dir == ForgeDirection.DOWN) {
+            return toTopConnections.get(target);
+        } else if (dir == ForgeDirection.UP) {
+            return toBottomConnections.get(target);
+        }
+
+        return toHorizontalConnections.get(target);
+    }
+
     // Build a piece with a default rotation (NOT cascade safe!)
     public void build(World world, int x, int y, int z) {
         build(world, x, y, z, 0, true, false);

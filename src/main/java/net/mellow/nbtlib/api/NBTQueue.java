@@ -8,6 +8,9 @@ import java.util.Random;
 import cpw.mods.fml.common.FMLCommonHandler;
 import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
+import net.mellow.nbtlib.Config;
+import net.mellow.nbtlib.Registry;
+import net.mellow.nbtlib.api.NBTStructure.JigsawConnection;
 import net.minecraft.world.World;
 import net.minecraft.world.gen.structure.StructureBoundingBox;
 import net.minecraftforge.common.MinecraftForge;
@@ -41,19 +44,27 @@ public class NBTQueue {
         public final String spawnName;
         public final JigsawPiece piece;
 
-        public final ForgeDirection dir;
+        public final int coordBaseMode;
 
         public final StructureBoundingBox boundingBox;
 
         public boolean hasBuilt;
 
-        private Tandem(String spawnName, JigsawPiece piece, int x, int y, int z, ForgeDirection dir) {
+        private Tandem(String spawnName, JigsawPiece piece, int x, int y, int z, int coordBaseMode) {
             this.spawnName = spawnName;
             this.piece = piece;
 
-            this.dir = dir;
+            this.coordBaseMode = coordBaseMode;
 
-            this.boundingBox = new StructureBoundingBox(x, y, z, x + piece.structure.size.x - 1, y + piece.structure.size.y - 1, z + piece.structure.size.z - 1);
+            switch (this.coordBaseMode) {
+            case 1:
+            case 3:
+                this.boundingBox = new StructureBoundingBox(x, y, z, x + piece.structure.size.z - 1, y + piece.structure.size.y - 1, z + piece.structure.size.x - 1);
+                break;
+            default:
+                this.boundingBox = new StructureBoundingBox(x, y, z, x + piece.structure.size.x - 1, y + piece.structure.size.y - 1, z + piece.structure.size.z - 1);
+                break;
+            }
         }
 
         public static Tandem selectPiece(String spawnName, String poolName, String targetName, Random rand, int x, int y, int z, ForgeDirection dir) {
@@ -63,16 +74,41 @@ public class NBTQueue {
             JigsawPool pool = spawn.pools.get(poolName);
             if (pool == null) return null;
 
-            return new Tandem(spawnName, pool.get(rand), x, y, z, dir);
+            JigsawPiece nextPiece = pool.get(rand);
+
+            List<JigsawConnection> connectionPool = nextPiece.structure.getConnectionPool(dir, targetName);
+            if (connectionPool == null) return null;
+
+            JigsawConnection toConnection = connectionPool.get(rand.nextInt(connectionPool.size()));
+            int nextCoordBase = directionOffsetToCoordBase(dir.getOpposite(), toConnection.dir);
+
+            // offset the starting point to the connecting point
+            int ox = nextPiece.structure.rotateX(toConnection.pos.x, toConnection.pos.z, nextCoordBase);
+            int oy = toConnection.pos.y;
+            int oz = nextPiece.structure.rotateZ(toConnection.pos.x, toConnection.pos.z, nextCoordBase);
+
+            return new Tandem(spawnName, nextPiece, x - ox + dir.offsetX, y - oy + dir.offsetY, z - oz + dir.offsetZ, nextCoordBase);
         }
 
-        public void build(World world, Random rand) {
+        private static int directionOffsetToCoordBase(ForgeDirection from, ForgeDirection to) {
+            for(int i = 0; i < 4; i++) {
+                if(from == to) return i % 4;
+                from = from.getRotation(ForgeDirection.DOWN);
+            }
+            return 0;
+        }
+
+        public void attemptBuild(World world, Random rand) {
             if (hasBuilt) return;
 
-            System.out.println("[Tandem] building: " + piece.name + " at " + boundingBox.toString());
+            if (!world.checkChunksExist(boundingBox.minX, boundingBox.minY, boundingBox.minZ, boundingBox.maxX, boundingBox.maxY, boundingBox.maxZ)) return;
+
+            if (Config.debugSpawning) {
+                Registry.LOG.info("[Tandem] building: " + piece.name + " at " + boundingBox.toString());
+            }
 
             // `flag: 2`: gotta send client updates for tandems, they occur after the chunk has already been sent to the client
-            piece.structure.build(world, rand, spawnName, piece, boundingBox, boundingBox, 0, 2);
+            piece.structure.build(world, rand, spawnName, piece, boundingBox, boundingBox, coordBaseMode, 2);
 
             hasBuilt = true;
         }
@@ -97,7 +133,7 @@ public class NBTQueue {
 
             int count = queue.tandemQueue.size();
             for (int i = 0; i < count; i++) {
-                queue.tandemQueue.get(i).build(event.world, rand);
+                queue.tandemQueue.get(i).attemptBuild(event.world, rand);
             }
 
             queue.tandemQueue.removeIf(tandem -> tandem.hasBuilt);
