@@ -9,13 +9,9 @@ import java.util.Map;
 import java.util.Set;
 
 import cpw.mods.fml.common.registry.GameRegistry;
-import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.BlockMeta;
 import net.mellow.nbtlib.block.BlockPos;
-import net.mellow.nbtlib.block.BlockReplace;
-import net.mellow.nbtlib.block.ModBlocks;
-import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
@@ -58,14 +54,9 @@ public class NBTFormatProvider implements IStructureProvider {
         for (int x = x1; x <= x2; x++) {
             for (int y = y1; y <= y2; y++) {
                 for (int z = z1; z <= z2; z++) {
-                    BlockMeta block = new BlockMeta(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
+                    BlockMeta block = IStructureProvider.fetchBlockMeta(world, x, y, z, exclude);
 
-                    if (exclude.contains(block)) continue;
-
-                    // bock bock I'm a chicken
-                    if (block.block instanceof BlockReplace) {
-                        block = new BlockMeta(((BlockReplace) block.block).exportAs, block.meta);
-                    }
+                    if (block == null) continue;
 
                     int paletteId = palette.size();
                     if (palette.containsKey(block)) {
@@ -190,14 +181,6 @@ public class NBTFormatProvider implements IStructureProvider {
             }
 
             palette[i] = new BlockMeta(blockName, meta);
-
-            if (!Config.debugStructures && palette[i].block == ModBlocks.structure_block) {
-                palette[i] = new BlockMeta(Blocks.air, 0);
-            }
-
-            if (Config.debugStructures && palette[i].block == Blocks.air) {
-                palette[i] = new BlockMeta(ModBlocks.structure_air, meta);
-            }
         }
 
         // PARSE ITEM PALETTE (custom shite)

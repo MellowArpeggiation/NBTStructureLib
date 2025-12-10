@@ -11,6 +11,7 @@ import java.util.Set;
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.api.BlockMeta;
 import net.mellow.nbtlib.block.BlockPos;
+import net.mellow.nbtlib.block.BlockReplace;
 import net.mellow.nbtlib.block.ModBlocks;
 import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
@@ -28,6 +29,18 @@ public interface IStructureProvider {
     public void saveArea(OutputStream stream, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude);
     public NBTStructureData loadStructure(InputStream stream);
 
+
+    public static BlockMeta fetchBlockMeta(World world, int x, int y, int z, Set<BlockMeta> exclude) {
+        BlockMeta definition = new BlockMeta(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
+
+        if (exclude.contains(definition)) return null;
+
+        if (definition.block instanceof BlockReplace) {
+            definition = new BlockMeta(((BlockReplace) definition.block).exportAs, definition.meta);
+        }
+
+        return definition;
+    }
 
 
     public static class NBTStructureData {
