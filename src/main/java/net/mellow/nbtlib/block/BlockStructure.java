@@ -161,7 +161,7 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
             BlockMeta air = new BlockMeta(Blocks.air, 0);
             blacklist.add(air);
 
-            File file = NBTStructure.quickSaveArea(name + ".nbt", worldObj, xCoord, yCoord + 1, zCoord, xCoord + sizeX - 1, yCoord + sizeY, zCoord + sizeZ - 1, blacklist);
+            File file = NBTStructure.saveAreaToFile(name + ".nbt", worldObj, xCoord, yCoord + 1, zCoord, xCoord + sizeX - 1, yCoord + sizeY, zCoord + sizeZ - 1, blacklist);
 
             blacklist.remove(air);
 

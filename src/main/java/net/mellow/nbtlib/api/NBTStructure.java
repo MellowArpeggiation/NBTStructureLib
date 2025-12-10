@@ -4,28 +4,27 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
 import org.apache.commons.compress.utils.IOUtils;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
+import net.mellow.nbtlib.api.format.IStructureProvider;
+import net.mellow.nbtlib.api.format.IStructureProvider.BlockState;
+import net.mellow.nbtlib.api.format.IStructureProvider.ItemPaletteEntry;
+import net.mellow.nbtlib.api.format.IStructureProvider.JigsawConnection;
+import net.mellow.nbtlib.api.format.IStructureProvider.NBTStructureData;
+import net.mellow.nbtlib.api.format.StructureProviderRegistry;
 import net.mellow.nbtlib.api.selector.BiomeBlockSelector;
 import net.mellow.nbtlib.block.BlockPos;
-import net.mellow.nbtlib.block.BlockReplace;
-import net.mellow.nbtlib.block.ModBlocks;
 import net.mellow.nbtlib.block.BlockJigsawTandem.TileEntityJigsawTandem;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.init.Blocks;
 import net.minecraft.item.Item;
-import net.minecraft.nbt.CompressedStreamTools;
-import net.minecraft.nbt.NBTBase;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.nbt.NBTTagInt;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.ResourceLocation;
@@ -66,7 +65,7 @@ public class NBTStructure {
         InputStream stream = NBTStructure.class.getResourceAsStream("/assets/" + resource.getResourceDomain() + "/" + resource.getResourcePath());
         if (stream != null) {
             name = resource.getResourcePath();
-            loadStructure(stream);
+            loadStructure(name, stream);
         } else {
             Registry.LOG.error("NBT Structure not found: " + resource.getResourcePath());
         }
@@ -74,13 +73,13 @@ public class NBTStructure {
 
     public NBTStructure(String name, InputStream stream) {
         this.name = name;
-        loadStructure(stream);
+        loadStructure(name, stream);
     }
 
     public NBTStructure(File file) throws FileNotFoundException {
         this.name = file.getName();
         InputStream stream = new FileInputStream(file);
-        loadStructure(stream);
+        loadStructure(this.name, stream);
         IOUtils.closeQuietly(stream);
     }
 
@@ -296,123 +295,11 @@ public class NBTStructure {
         return true;
     }
 
-    // Saves a selected area into an NBT structure (+ some of our non-standard stuff to support 1.7.10)
-    public static NBTTagCompound saveArea(World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
-        NBTTagCompound structure = new NBTTagCompound();
-        NBTTagList nbtBlocks = new NBTTagList();
-        NBTTagList nbtPalette = new NBTTagList();
-        NBTTagList nbtItemPalette = new NBTTagList();
-
-        // Quick access hash slinging slashers
-        Map<BlockMeta, Integer> palette = new HashMap<>();
-        Map<Short, Integer> itemPalette = new HashMap<>();
-
-        structure.setInteger("version", 1);
-
-        int ox = Math.min(x1, x2);
-        int oy = Math.min(y1, y2);
-        int oz = Math.min(z1, z2);
-
-        for (int x = ox; x <= Math.max(x1, x2); x++) {
-            for (int y = oy; y <= Math.max(y1, y2); y++) {
-                for (int z = oz; z <= Math.max(z1, z2); z++) {
-                    BlockMeta block = new BlockMeta(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
-
-                    if (exclude.contains(block)) continue;
-
-                    // bock bock I'm a chicken
-                    if (block.block instanceof BlockReplace) {
-                        block = new BlockMeta(((BlockReplace) block.block).exportAs, block.meta);
-                    }
-
-                    int paletteId = palette.size();
-                    if (palette.containsKey(block)) {
-                        paletteId = palette.get(block);
-                    } else {
-                        palette.put(block, paletteId);
-
-                        NBTTagCompound nbtBlock = new NBTTagCompound();
-                        nbtBlock.setString("Name", GameRegistry.findUniqueIdentifierFor(block.block).toString());
-
-                        NBTTagCompound nbtProp = new NBTTagCompound();
-                        nbtProp.setString("meta", new Integer(block.meta).toString());
-
-                        nbtBlock.setTag("Properties", nbtProp);
-
-                        nbtPalette.appendTag(nbtBlock);
-                    }
-
-                    NBTTagCompound nbtBlock = new NBTTagCompound();
-                    nbtBlock.setInteger("state", paletteId);
-
-                    NBTTagList nbtPos = new NBTTagList();
-                    nbtPos.appendTag(new NBTTagInt(x - ox));
-                    nbtPos.appendTag(new NBTTagInt(y - oy));
-                    nbtPos.appendTag(new NBTTagInt(z - oz));
-
-                    nbtBlock.setTag("pos", nbtPos);
-
-                    TileEntity te = world.getTileEntity(x, y, z);
-                    if (te != null) {
-                        NBTTagCompound nbt = new NBTTagCompound();
-                        te.writeToNBT(nbt);
-
-                        nbt.removeTag("x");
-                        nbt.removeTag("y");
-                        nbt.removeTag("z");
-
-                        nbtBlock.setTag("nbt", nbt);
-
-                        String itemKey = null;
-                        if (nbt.hasKey("items"))
-                            itemKey = "items";
-                        if (nbt.hasKey("Items"))
-                            itemKey = "Items";
-
-                        if (nbt.hasKey(itemKey)) {
-                            NBTTagList items = nbt.getTagList(itemKey, NBT.TAG_COMPOUND);
-                            for (int i = 0; i < items.tagCount(); i++) {
-                                NBTTagCompound item = items.getCompoundTagAt(i);
-                                short id = item.getShort("id");
-                                String name = GameRegistry.findUniqueIdentifierFor(Item.getItemById(id)).toString();
-
-                                if (!itemPalette.containsKey(id)) {
-                                    int itemPaletteId = itemPalette.size();
-                                    itemPalette.put(id, itemPaletteId);
-
-                                    NBTTagCompound nbtItem = new NBTTagCompound();
-                                    nbtItem.setShort("ID", id);
-                                    nbtItem.setString("Name", name);
-
-                                    nbtItemPalette.appendTag(nbtItem);
-                                }
-                            }
-                        }
-                    }
-
-                    nbtBlocks.appendTag(nbtBlock);
-                }
-            }
-        }
-
-        structure.setTag("blocks", nbtBlocks);
-        structure.setTag("palette", nbtPalette);
-        structure.setTag("itemPalette", nbtItemPalette);
-
-        NBTTagList nbtSize = new NBTTagList();
-        nbtSize.appendTag(new NBTTagInt(Math.abs(x1 - x2) + 1));
-        nbtSize.appendTag(new NBTTagInt(Math.abs(y1 - y2) + 1));
-        nbtSize.appendTag(new NBTTagInt(Math.abs(z1 - z2) + 1));
-        structure.setTag("size", nbtSize);
-
-        structure.setTag("entities", new NBTTagList());
-
-        return structure;
-    }
-
-    // Writes out a specified area to an .nbt file with a given name
-    public static File quickSaveArea(String filename, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
-        NBTTagCompound structure = saveArea(world, x1, y1, z1, x2, y2, z2, exclude);
+    /**
+     * Writes out a specified area to a file with a given name (auto-selects format provider by file extension!)
+     */
+    public static File saveAreaToFile(String filename, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
+        IStructureProvider provider = StructureProviderRegistry.getFormatFor(filename);
 
         try {
             File structureDirectory = new File(Minecraft.getMinecraft().mcDataDir, "structures");
@@ -420,7 +307,7 @@ public class NBTStructure {
 
             File structureFile = new File(structureDirectory, filename);
 
-            CompressedStreamTools.writeCompressed(structure, new FileOutputStream(structureFile));
+            provider.saveArea(new FileOutputStream(structureFile), world, x1, y1, z1, x2, y2, z2, exclude);
 
             return structureFile;
         } catch (Exception ex) {
@@ -430,149 +317,26 @@ public class NBTStructure {
         }
     }
 
-    private void loadStructure(InputStream inputStream) {
-        try {
-            NBTTagCompound data = CompressedStreamTools.readCompressed(inputStream);
+    private void loadStructure(String filename, InputStream inputStream) {
+        IStructureProvider provider = StructureProviderRegistry.getFormatFor(filename);
 
-            // GET SIZE (for offsetting to center)
-            size = parsePos(data.getTagList("size", NBT.TAG_INT));
+        NBTStructureData data = provider.loadStructure(inputStream);
 
-            // PARSE BLOCK PALETTE
-            NBTTagList paletteList = data.getTagList("palette", NBT.TAG_COMPOUND);
-            BlockMeta[] palette = new BlockMeta[paletteList.tagCount()];
+        // isLoaded flag determines whether this structure is usable, so just return early on failure
+        if (data == null) return;
 
-            for (int i = 0; i < paletteList.tagCount(); i++) {
-                NBTTagCompound p = paletteList.getCompoundTagAt(i);
+        data.processStructureBlocks();
 
-                String blockName = p.getString("Name");
-                NBTTagCompound prop = p.getCompoundTag("Properties");
+        size = data.size;
+        itemPalette = data.itemPalette;
+        blockArray = data.blockArray;
 
-                int meta = 0;
-                try {
-                    meta = Integer.parseInt(prop.getString("meta"));
-                } catch (NumberFormatException ex) {
-                    Registry.LOG.info("Failed to parse: " + prop.getString("meta"));
-                    meta = 0;
-                }
+        fromConnections = data.fromConnections;
+        toTopConnections = data.toTopConnections;
+        toBottomConnections = data.toBottomConnections;
+        toHorizontalConnections = data.toHorizontalConnections;
 
-                palette[i] = new BlockMeta(blockName, meta);
-
-                if (!Config.debugStructures && palette[i].block == ModBlocks.structure_block) {
-                    palette[i] = new BlockMeta(Blocks.air, 0);
-                }
-
-                if (Config.debugStructures && palette[i].block == Blocks.air) {
-                    palette[i] = new BlockMeta(ModBlocks.structure_air, meta);
-                }
-            }
-
-            // PARSE ITEM PALETTE (custom shite)
-            if (data.hasKey("itemPalette")) {
-                NBTTagList itemPaletteList = data.getTagList("itemPalette", NBT.TAG_COMPOUND);
-                itemPalette = new ArrayList<>(itemPaletteList.tagCount());
-
-                for (int i = 0; i < itemPaletteList.tagCount(); i++) {
-                    NBTTagCompound p = itemPaletteList.getCompoundTagAt(i);
-
-                    short id = p.getShort("ID");
-                    String name = p.getString("Name");
-
-                    itemPalette.add(new ItemPaletteEntry(id, name));
-                }
-            } else {
-                itemPalette = null;
-            }
-
-            // LOAD IN BLOCKS
-            NBTTagList blockData = data.getTagList("blocks", NBT.TAG_COMPOUND);
-            blockArray = new BlockState[size.x][size.y][size.z];
-
-            List<JigsawConnection> connections = new ArrayList<>();
-
-            for (int i = 0; i < blockData.tagCount(); i++) {
-                NBTTagCompound block = blockData.getCompoundTagAt(i);
-                int state = block.getInteger("state");
-                BlockPos pos = parsePos(block.getTagList("pos", NBT.TAG_INT));
-
-                BlockState blockState = new BlockState(palette[state]);
-
-                if (block.hasKey("nbt")) {
-                    NBTTagCompound nbt = block.getCompoundTag("nbt");
-                    blockState.nbt = nbt;
-
-                    // Load in connection points for jigsaws
-                    if (blockState.definition.block == ModBlocks.structure_jigsaw) {
-                        if (toTopConnections == null) toTopConnections = new HashMap<>();
-                        if (toBottomConnections == null) toBottomConnections = new HashMap<>();
-                        if (toHorizontalConnections == null) toHorizontalConnections = new HashMap<>();
-
-                        int selectionPriority = nbt.getInteger("selection");
-                        int placementPriority = nbt.getInteger("placement");
-                        ForgeDirection direction = ForgeDirection.getOrientation(nbt.getInteger("direction"));
-                        String poolName = nbt.getString("pool");
-                        String ourName = nbt.getString("name");
-                        String targetName = nbt.getString("target");
-                        String replaceBlock = nbt.getString("block");
-                        int replaceMeta = nbt.getInteger("meta");
-                        boolean isRollable = nbt.getBoolean("roll");
-
-                        JigsawConnection connection = new JigsawConnection(pos, direction, poolName, targetName, isRollable, selectionPriority, placementPriority);
-
-                        connections.add(connection);
-
-                        Map<String, List<JigsawConnection>> toConnections = null;
-                        if (direction == ForgeDirection.UP) {
-                            toConnections = toTopConnections;
-                        } else if (direction == ForgeDirection.DOWN) {
-                            toConnections = toBottomConnections;
-                        } else {
-                            toConnections = toHorizontalConnections;
-                        }
-
-                        List<JigsawConnection> namedConnections = toConnections.computeIfAbsent(ourName, name -> new ArrayList<>());
-                        namedConnections.add(connection);
-
-                        if (!Config.debugStructures) {
-                            blockState = new BlockState(new BlockMeta(replaceBlock, replaceMeta));
-                        }
-                    }
-                }
-
-                blockArray[pos.x][pos.y][pos.z] = blockState;
-            }
-
-            // MAP OUT CONNECTIONS + PRIORITIES
-            if (connections.size() > 0) {
-                fromConnections = new ArrayList<>();
-
-                connections.sort((a, b) -> b.selectionPriority - a.selectionPriority); // sort by descending priority, highest first
-
-                // Sort out our from connections, splitting into individual lists for each
-                // priority level
-                List<JigsawConnection> innerList = null;
-                int currentPriority = 0;
-                for (JigsawConnection connection : connections) {
-                    if (innerList == null || currentPriority != connection.selectionPriority) {
-                        innerList = new ArrayList<>();
-                        fromConnections.add(innerList);
-                        currentPriority = connection.selectionPriority;
-                    }
-
-                    innerList.add(connection);
-                }
-            }
-
-            isLoaded = true;
-
-        } catch (Exception e) {
-            Registry.LOG.error("Exception reading NBT Structure format", e);
-        } finally {
-            try {
-                inputStream.close();
-            } catch (IOException e) {
-                // hush
-            }
-        }
+        isLoaded = true;
     }
 
     private HashMap<Short, Short> getWorldItemPalette() {
@@ -608,19 +372,6 @@ public class NBTStructure {
         }
 
         return tile;
-    }
-
-    // What a fucken mess, why even implement the IntArray NBT if ye aint gonna use
-    // it Moe Yang?
-    private BlockPos parsePos(NBTTagList pos) {
-        NBTBase xb = (NBTBase) pos.tagList.get(0);
-        int x = ((NBTTagInt) xb).func_150287_d();
-        NBTBase yb = (NBTBase) pos.tagList.get(1);
-        int y = ((NBTTagInt) yb).func_150287_d();
-        NBTBase zb = (NBTBase) pos.tagList.get(2);
-        int z = ((NBTTagInt) zb).func_150287_d();
-
-        return new BlockPos(x, y, z);
     }
 
     // NON-STANDARD, items are serialized with IDs, which will differ from world to world!
@@ -713,58 +464,6 @@ public class NBTStructure {
         case 1: return size.z - 1 - x;
         default: return z;
         }
-    }
-
-    private static class BlockState {
-
-        final BlockMeta definition;
-        NBTTagCompound nbt;
-
-        BlockState(BlockMeta definition) {
-            this.definition = definition;
-        }
-
-    }
-
-    private static class ItemPaletteEntry {
-
-        final short id;
-        final String name;
-
-        ItemPaletteEntry(short id, String name) {
-            this.id = id;
-            this.name = name;
-        }
-
-    }
-
-    // Each jigsaw block in a structure will instance one of these
-    protected static class JigsawConnection {
-
-        protected final BlockPos pos;
-        protected final ForgeDirection dir;
-
-        // what pool should we look through to find a connection
-        protected final String poolName;
-
-        // when we successfully find a pool, what connections in that jigsaw piece can we target
-        protected final String targetName;
-
-        protected final boolean isRollable;
-
-        protected final int selectionPriority;
-        protected final int placementPriority;
-
-        private JigsawConnection(BlockPos pos, ForgeDirection dir, String poolName, String targetName, boolean isRollable, int selectionPriority, int placementPriority) {
-            this.pos = pos;
-            this.dir = dir;
-            this.poolName = poolName;
-            this.targetName = targetName;
-            this.isRollable = isRollable;
-            this.selectionPriority = selectionPriority;
-            this.placementPriority = placementPriority;
-        }
-
     }
 
 }

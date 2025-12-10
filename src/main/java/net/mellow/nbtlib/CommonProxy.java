@@ -15,6 +15,7 @@ import net.mellow.nbtlib.api.JigsawPool;
 import net.mellow.nbtlib.api.NBTGeneration;
 import net.mellow.nbtlib.api.NBTQueue;
 import net.mellow.nbtlib.api.SpawnCondition;
+import net.mellow.nbtlib.api.format.StructureProviderRegistry;
 import net.mellow.nbtlib.api.selector.BiomeFillerSelector;
 import net.mellow.nbtlib.api.selector.BrickSelector;
 import net.mellow.nbtlib.api.selector.StoneBrickSelector;
@@ -54,6 +55,7 @@ public class CommonProxy {
 
         NBTGeneration.register();
         NBTQueue.init();
+        StructureProviderRegistry.init();
 
         if (Config.spawnTestStructure) {
             NBTGeneration.registerStructure(0, new SpawnCondition("example_structure") {{

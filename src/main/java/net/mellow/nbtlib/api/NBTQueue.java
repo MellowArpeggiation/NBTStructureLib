@@ -11,7 +11,7 @@ import cpw.mods.fml.common.eventhandler.SubscribeEvent;
 import cpw.mods.fml.common.gameevent.TickEvent;
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
-import net.mellow.nbtlib.api.NBTStructure.JigsawConnection;
+import net.mellow.nbtlib.api.format.IStructureProvider.JigsawConnection;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
 import net.minecraft.world.World;
