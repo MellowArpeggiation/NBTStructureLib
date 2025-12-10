@@ -55,13 +55,9 @@ public class NBTFormatProvider implements IStructureProvider {
 
         structure.setInteger("version", 1);
 
-        int ox = Math.min(x1, x2);
-        int oy = Math.min(y1, y2);
-        int oz = Math.min(z1, z2);
-
-        for (int x = ox; x <= Math.max(x1, x2); x++) {
-            for (int y = oy; y <= Math.max(y1, y2); y++) {
-                for (int z = oz; z <= Math.max(z1, z2); z++) {
+        for (int x = x1; x <= x2; x++) {
+            for (int y = y1; y <= y2; y++) {
+                for (int z = z1; z <= z2; z++) {
                     BlockMeta block = new BlockMeta(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
 
                     if (exclude.contains(block)) continue;
@@ -92,9 +88,9 @@ public class NBTFormatProvider implements IStructureProvider {
                     nbtBlock.setInteger("state", paletteId);
 
                     NBTTagList nbtPos = new NBTTagList();
-                    nbtPos.appendTag(new NBTTagInt(x - ox));
-                    nbtPos.appendTag(new NBTTagInt(y - oy));
-                    nbtPos.appendTag(new NBTTagInt(z - oz));
+                    nbtPos.appendTag(new NBTTagInt(x - x1));
+                    nbtPos.appendTag(new NBTTagInt(y - y1));
+                    nbtPos.appendTag(new NBTTagInt(z - z1));
 
                     nbtBlock.setTag("pos", nbtPos);
 
