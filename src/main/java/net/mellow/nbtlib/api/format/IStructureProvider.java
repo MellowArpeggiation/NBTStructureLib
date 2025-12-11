@@ -19,10 +19,21 @@ public interface IStructureProvider {
      */
     public String getFileExtension();
 
+    /**
+     * Serialize a provided area in a world to an `OutputStream`.
+     * You should pass `exclude` into `fetchBlockMeta` to process any user selected exclusions
+     */
     public void saveArea(OutputStream stream, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude);
+
+    /**
+     * Deserializes a provided data stream into `NBTStructureData`.
+     * Structure loading will handle any special structure blocks when converting `NBTStructureData` into `NBTStructure`
+     */
     public NBTStructureData loadStructure(InputStream stream);
 
-
+    /**
+     * Fetches the block data for a given block in the world, including replacements for blocks like structure air
+     */
     public static BlockMeta fetchBlockMeta(World world, int x, int y, int z, Set<BlockMeta> exclude) {
         BlockMeta definition = new BlockMeta(world.getBlock(x, y, z), world.getBlockMetadata(x, y, z));
 

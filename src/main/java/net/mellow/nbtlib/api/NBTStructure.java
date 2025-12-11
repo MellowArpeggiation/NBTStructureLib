@@ -338,7 +338,10 @@ public class NBTStructure {
         NBTStructureData data = provider.loadStructure(inputStream);
 
         // isLoaded flag determines whether this structure is usable, so just return early on failure
-        if (data == null) return;
+        if (data == null) {
+            Registry.LOG.warn("Failed to load structure: " + filename);
+            return;
+        }
 
         // solve jigsaw connections and remove structure blocks
         applyData(data);
