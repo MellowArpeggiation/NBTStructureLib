@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.commons.io.FilenameUtils;
 import org.lwjgl.input.Keyboard;
 
 import cpw.mods.fml.common.network.NetworkRegistry.TargetPoint;
@@ -158,10 +159,12 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
                 return;
             }
 
+            if (FilenameUtils.getExtension(name).isEmpty()) name += ".nbt";
+
             BlockMeta air = new BlockMeta(Blocks.air, 0);
             blacklist.add(air);
 
-            File file = NBTStructure.saveAreaToFile(name + ".nbt", worldObj, xCoord, yCoord + 1, zCoord, xCoord + sizeX - 1, yCoord + sizeY, zCoord + sizeZ - 1, blacklist);
+            File file = NBTStructure.saveAreaToFile(name, worldObj, xCoord, yCoord + 1, zCoord, xCoord + sizeX - 1, yCoord + sizeY, zCoord + sizeZ - 1, blacklist);
 
             blacklist.remove(air);
 
@@ -183,10 +186,12 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
                 return;
             }
 
+            if (FilenameUtils.getExtension(name).isEmpty()) name += ".nbt";
+
             File structureDirectory = new File(Minecraft.getMinecraft().mcDataDir, "structures");
             structureDirectory.mkdir();
 
-            File structureFile = new File(structureDirectory, name + ".nbt");
+            File structureFile = new File(structureDirectory, name);
 
             boolean previousDebug = Config.debugStructures;
             Config.debugStructures = true;
@@ -427,7 +432,11 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
         private static final FileFilter structureFilter = new FileFilter() {
 
             public boolean accept(File file) {
-                if (!file.isFile() || !file.getName().endsWith(".nbt")) return false;
+                if (!file.isFile()) return false;
+
+                String name = file.getName();
+                if (!name.endsWith(".nbt") && !name.endsWith(".schematic")) return false;
+
                 return nameFilter.isEmpty() || file.getName().contains(nameFilter);
             }
 
@@ -453,8 +462,7 @@ public class BlockStructure extends BlockContainer implements IBlockMulti {
         }
 
         public void selectFile(File file) {
-            String fileName = file.getName();
-            textName.setText(fileName.substring(0, fileName.length() - 4));
+            textName.setText(file.getName());
         }
 
         @Override

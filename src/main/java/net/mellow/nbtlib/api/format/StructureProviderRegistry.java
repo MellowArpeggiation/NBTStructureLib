@@ -11,6 +11,7 @@ public class StructureProviderRegistry {
 
     public static void init() {
         registerFormat(new NBTFormatProvider());
+        registerFormat(new SchematicFormatProvider());
     }
 
     public static void registerFormat(IStructureProvider provider) {

@@ -1,4 +1,4 @@
-package net.mellow.nbtlib.block;
+package net.mellow.nbtlib.api;
 
 public class BlockPos implements Comparable<BlockPos> {
 

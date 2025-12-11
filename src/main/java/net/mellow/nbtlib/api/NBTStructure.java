@@ -14,11 +14,10 @@ import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.format.IStructureProvider;
 import net.mellow.nbtlib.api.format.IStructureProvider.BlockState;
 import net.mellow.nbtlib.api.format.IStructureProvider.ItemPaletteEntry;
-import net.mellow.nbtlib.api.format.IStructureProvider.JigsawConnection;
 import net.mellow.nbtlib.api.format.IStructureProvider.NBTStructureData;
 import net.mellow.nbtlib.api.format.StructureProviderRegistry;
 import net.mellow.nbtlib.api.selector.BiomeBlockSelector;
-import net.mellow.nbtlib.block.BlockPos;
+import net.mellow.nbtlib.block.ModBlocks;
 import net.mellow.nbtlib.block.BlockJigsawTandem.TileEntityJigsawTandem;
 import net.minecraft.block.*;
 import net.minecraft.client.Minecraft;
@@ -300,6 +299,10 @@ public class NBTStructure {
      */
     public static File saveAreaToFile(String filename, World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
         IStructureProvider provider = StructureProviderRegistry.getFormatFor(filename);
+        if (provider == null) {
+            Registry.LOG.warn("No file format handler for " + filename);
+            return null;
+        }
 
         try {
             File structureDirectory = new File(Minecraft.getMinecraft().mcDataDir, "structures");
@@ -326,22 +329,103 @@ public class NBTStructure {
 
     private void loadStructure(String filename, InputStream inputStream) {
         IStructureProvider provider = StructureProviderRegistry.getFormatFor(filename);
+        if (provider == null) {
+            Registry.LOG.warn("No file format handler for " + filename);
+            return;
+        }
 
         NBTStructureData data = provider.loadStructure(inputStream);
 
         // isLoaded flag determines whether this structure is usable, so just return early on failure
         if (data == null) return;
 
-        data.processStructureBlocks();
+        // solve jigsaw connections and remove structure blocks
+        applyData(data);
+    }
 
+    private void applyData(NBTStructureData data) {
         size = data.size;
         itemPalette = data.itemPalette;
         blockArray = data.blockArray;
 
-        fromConnections = data.fromConnections;
-        toTopConnections = data.toTopConnections;
-        toBottomConnections = data.toBottomConnections;
-        toHorizontalConnections = data.toHorizontalConnections;
+        List<JigsawConnection> connections = new ArrayList<>();
+
+        for (int x = 0; x < size.x; x++)
+        for (int y = 0; y < size.y; y++)
+        for (int z = 0; z < size.z; z++) {
+            BlockState blockState = blockArray[x][y][z];
+            if (blockState == null) continue;
+
+            if (!Config.debugStructures && blockState.definition.block == ModBlocks.structure_block) {
+                blockState = blockArray[x][y][z] = new BlockState(new BlockMeta(Blocks.air, 0));
+            }
+
+            if (Config.debugStructures && blockState.definition.block == Blocks.air) {
+                blockState = blockArray[x][y][z] = new BlockState(new BlockMeta(ModBlocks.structure_air, 0));
+            }
+
+            if (blockState.nbt != null) {
+                BlockPos pos = new BlockPos(x, y, z);
+
+                // Load in connection points for jigsaws
+                if (blockState.definition.block == ModBlocks.structure_jigsaw) {
+                    if (toTopConnections == null) toTopConnections = new HashMap<>();
+                    if (toBottomConnections == null) toBottomConnections = new HashMap<>();
+                    if (toHorizontalConnections == null) toHorizontalConnections = new HashMap<>();
+
+                    int selectionPriority = blockState.nbt.getInteger("selection");
+                    int placementPriority = blockState.nbt.getInteger("placement");
+                    ForgeDirection direction = ForgeDirection.getOrientation(blockState.nbt.getInteger("direction"));
+                    String poolName = blockState.nbt.getString("pool");
+                    String ourName = blockState.nbt.getString("name");
+                    String targetName = blockState.nbt.getString("target");
+                    String replaceBlock = blockState.nbt.getString("block");
+                    int replaceMeta = blockState.nbt.getInteger("meta");
+                    boolean isRollable = blockState.nbt.getBoolean("roll");
+
+                    JigsawConnection connection = new JigsawConnection(pos, direction, poolName, targetName, isRollable, selectionPriority, placementPriority);
+
+                    connections.add(connection);
+
+                    Map<String, List<JigsawConnection>> toConnections = null;
+                    if (direction == ForgeDirection.UP) {
+                        toConnections = toTopConnections;
+                    } else if (direction == ForgeDirection.DOWN) {
+                        toConnections = toBottomConnections;
+                    } else {
+                        toConnections = toHorizontalConnections;
+                    }
+
+                    List<JigsawConnection> namedConnections = toConnections.computeIfAbsent(ourName, name -> new ArrayList<>());
+                    namedConnections.add(connection);
+
+                    if (!Config.debugStructures) {
+                        blockState = blockArray[x][y][z] = new BlockState(new BlockMeta(replaceBlock, replaceMeta));
+                    }
+                }
+            }
+        }
+
+        // MAP OUT CONNECTIONS + PRIORITIES
+        if (connections.size() > 0) {
+            fromConnections = new ArrayList<>();
+
+            connections.sort((a, b) -> b.selectionPriority - a.selectionPriority); // sort by descending priority, highest first
+
+            // Sort out our from connections, splitting into individual lists for each
+            // priority level
+            List<JigsawConnection> innerList = null;
+            int currentPriority = 0;
+            for (JigsawConnection connection : connections) {
+                if (innerList == null || currentPriority != connection.selectionPriority) {
+                    innerList = new ArrayList<>();
+                    fromConnections.add(innerList);
+                    currentPriority = connection.selectionPriority;
+                }
+
+                innerList.add(connection);
+            }
+        }
 
         isLoaded = true;
     }
@@ -471,6 +555,35 @@ public class NBTStructure {
         case 1: return size.z - 1 - x;
         default: return z;
         }
+    }
+
+    // Each jigsaw block in a structure will instance one of these
+    protected static class JigsawConnection {
+
+        public final BlockPos pos;
+        public final ForgeDirection dir;
+
+        // what pool should we look through to find a connection
+        public final String poolName;
+
+        // when we successfully find a pool, what connections in that jigsaw piece can we target
+        public final String targetName;
+
+        public final boolean isRollable;
+
+        public final int selectionPriority;
+        public final int placementPriority;
+
+        public JigsawConnection(BlockPos pos, ForgeDirection dir, String poolName, String targetName, boolean isRollable, int selectionPriority, int placementPriority) {
+            this.pos = pos;
+            this.dir = dir;
+            this.poolName = poolName;
+            this.targetName = targetName;
+            this.isRollable = isRollable;
+            this.selectionPriority = selectionPriority;
+            this.placementPriority = placementPriority;
+        }
+
     }
 
 }

@@ -11,7 +11,7 @@ import java.util.Set;
 import cpw.mods.fml.common.registry.GameRegistry;
 import net.mellow.nbtlib.Registry;
 import net.mellow.nbtlib.api.BlockMeta;
-import net.mellow.nbtlib.block.BlockPos;
+import net.mellow.nbtlib.api.BlockPos;
 import net.minecraft.item.Item;
 import net.minecraft.nbt.CompressedStreamTools;
 import net.minecraft.nbt.NBTBase;
@@ -42,7 +42,7 @@ public class NBTFormatProvider implements IStructureProvider {
     private static NBTTagCompound doSaveArea(World world, int x1, int y1, int z1, int x2, int y2, int z2, Set<BlockMeta> exclude) {
         NBTTagCompound structure = new NBTTagCompound();
         NBTTagList nbtBlocks = new NBTTagList();
-        NBTTagList nbtPalette = new NBTTagList();
+        NBTTagList nbtBlockPalette = new NBTTagList();
         NBTTagList nbtItemPalette = new NBTTagList();
 
         // Quick access hash slinging slashers
@@ -51,85 +51,84 @@ public class NBTFormatProvider implements IStructureProvider {
 
         structure.setInteger("version", 1);
 
-        for (int x = x1; x <= x2; x++) {
-            for (int y = y1; y <= y2; y++) {
-                for (int z = z1; z <= z2; z++) {
-                    BlockMeta block = IStructureProvider.fetchBlockMeta(world, x, y, z, exclude);
+        for (int x = x1; x <= x2; x++)
+        for (int y = y1; y <= y2; y++)
+        for (int z = z1; z <= z2; z++) {
+            BlockMeta definition = IStructureProvider.fetchBlockMeta(world, x, y, z, exclude);
 
-                    if (block == null) continue;
+            if (definition == null) continue;
 
-                    int paletteId = palette.size();
-                    if (palette.containsKey(block)) {
-                        paletteId = palette.get(block);
-                    } else {
-                        palette.put(block, paletteId);
+            int paletteId = palette.size();
+            if (palette.containsKey(definition)) {
+                paletteId = palette.get(definition);
+            } else {
+                palette.put(definition, paletteId);
 
-                        NBTTagCompound nbtBlock = new NBTTagCompound();
-                        nbtBlock.setString("Name", GameRegistry.findUniqueIdentifierFor(block.block).toString());
+                NBTTagCompound nbtBlock = new NBTTagCompound();
+                nbtBlock.setString("Name", GameRegistry.findUniqueIdentifierFor(definition.block).toString());
 
-                        NBTTagCompound nbtProp = new NBTTagCompound();
-                        nbtProp.setString("meta", new Integer(block.meta).toString());
+                NBTTagCompound nbtProp = new NBTTagCompound();
+                nbtProp.setString("meta", new Integer(definition.meta).toString());
 
-                        nbtBlock.setTag("Properties", nbtProp);
+                nbtBlock.setTag("Properties", nbtProp);
 
-                        nbtPalette.appendTag(nbtBlock);
-                    }
+                nbtBlockPalette.appendTag(nbtBlock);
+            }
 
-                    NBTTagCompound nbtBlock = new NBTTagCompound();
-                    nbtBlock.setInteger("state", paletteId);
+            NBTTagCompound nbtBlock = new NBTTagCompound();
+            nbtBlock.setInteger("state", paletteId);
 
-                    NBTTagList nbtPos = new NBTTagList();
-                    nbtPos.appendTag(new NBTTagInt(x - x1));
-                    nbtPos.appendTag(new NBTTagInt(y - y1));
-                    nbtPos.appendTag(new NBTTagInt(z - z1));
+            NBTTagList nbtPos = new NBTTagList();
+            nbtPos.appendTag(new NBTTagInt(x - x1));
+            nbtPos.appendTag(new NBTTagInt(y - y1));
+            nbtPos.appendTag(new NBTTagInt(z - z1));
 
-                    nbtBlock.setTag("pos", nbtPos);
+            nbtBlock.setTag("pos", nbtPos);
 
-                    TileEntity te = world.getTileEntity(x, y, z);
-                    if (te != null) {
-                        NBTTagCompound nbt = new NBTTagCompound();
-                        te.writeToNBT(nbt);
+            TileEntity te = world.getTileEntity(x, y, z);
+            if (te != null) {
+                NBTTagCompound nbt = new NBTTagCompound();
+                te.writeToNBT(nbt);
 
-                        nbt.removeTag("x");
-                        nbt.removeTag("y");
-                        nbt.removeTag("z");
+                nbt.removeTag("x");
+                nbt.removeTag("y");
+                nbt.removeTag("z");
 
-                        nbtBlock.setTag("nbt", nbt);
+                nbtBlock.setTag("nbt", nbt);
 
-                        String itemKey = null;
-                        if (nbt.hasKey("items"))
-                            itemKey = "items";
-                        if (nbt.hasKey("Items"))
-                            itemKey = "Items";
+                String itemKey = null;
+                if (nbt.hasKey("items"))
+                    itemKey = "items";
+                if (nbt.hasKey("Items"))
+                    itemKey = "Items";
 
-                        if (nbt.hasKey(itemKey)) {
-                            NBTTagList items = nbt.getTagList(itemKey, NBT.TAG_COMPOUND);
-                            for (int i = 0; i < items.tagCount(); i++) {
-                                NBTTagCompound item = items.getCompoundTagAt(i);
-                                short id = item.getShort("id");
-                                String name = GameRegistry.findUniqueIdentifierFor(Item.getItemById(id)).toString();
+                if (nbt.hasKey(itemKey)) {
+                    NBTTagList items = nbt.getTagList(itemKey, NBT.TAG_COMPOUND);
+                    for (int i = 0; i < items.tagCount(); i++) {
+                        NBTTagCompound item = items.getCompoundTagAt(i);
+                        short id = item.getShort("id");
+                        String name = GameRegistry.findUniqueIdentifierFor(Item.getItemById(id)).toString();
 
-                                if (!itemPalette.containsKey(id)) {
-                                    int itemPaletteId = itemPalette.size();
-                                    itemPalette.put(id, itemPaletteId);
+                        if (!itemPalette.containsKey(id)) {
+                            int itemPaletteId = itemPalette.size();
+                            itemPalette.put(id, itemPaletteId);
 
-                                    NBTTagCompound nbtItem = new NBTTagCompound();
-                                    nbtItem.setShort("ID", id);
-                                    nbtItem.setString("Name", name);
+                            NBTTagCompound nbtItem = new NBTTagCompound();
+                            nbtItem.setShort("ID", id);
+                            nbtItem.setString("Name", name);
 
-                                    nbtItemPalette.appendTag(nbtItem);
-                                }
-                            }
+                            nbtItemPalette.appendTag(nbtItem);
                         }
                     }
-
-                    nbtBlocks.appendTag(nbtBlock);
                 }
             }
+
+            nbtBlocks.appendTag(nbtBlock);
         }
 
+
         structure.setTag("blocks", nbtBlocks);
-        structure.setTag("palette", nbtPalette);
+        structure.setTag("palette", nbtBlockPalette);
         structure.setTag("itemPalette", nbtItemPalette);
 
         NBTTagList nbtSize = new NBTTagList();

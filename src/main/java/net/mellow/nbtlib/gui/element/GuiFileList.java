@@ -21,7 +21,7 @@ public class GuiFileList extends GuiListExtended {
         super(mc, width, height, top, bottom, slotHeight);
 
         for (File file : files) {
-            if (file.getName().equals(nameFilter + ".nbt")) {
+            if (file.getName().equals(nameFilter)) {
                 selectedId = rows.size();
             }
             rows.add(new Row(file, onSelect, width, slotHeight));
@@ -46,7 +46,7 @@ public class GuiFileList extends GuiListExtended {
     public void select(String nameFilter) {
         for (int i = 0; i < rows.size(); i++) {
             Row row = rows.get(i);
-            if (row.file.getName().equals(nameFilter + ".nbt")) {
+            if (row.file.getName().equals(nameFilter)) {
                 selectedId = i;
                 return;
             }
