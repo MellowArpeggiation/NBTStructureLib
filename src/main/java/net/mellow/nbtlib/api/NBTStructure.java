@@ -560,21 +560,21 @@ public class NBTStructure {
     // Each jigsaw block in a structure will instance one of these
     protected static class JigsawConnection {
 
-        public final BlockPos pos;
-        public final ForgeDirection dir;
+        protected final BlockPos pos;
+        protected final ForgeDirection dir;
 
         // what pool should we look through to find a connection
-        public final String poolName;
+        protected final String poolName;
 
         // when we successfully find a pool, what connections in that jigsaw piece can we target
-        public final String targetName;
+        protected final String targetName;
 
-        public final boolean isRollable;
+        protected final boolean isRollable;
 
-        public final int selectionPriority;
-        public final int placementPriority;
+        protected final int selectionPriority;
+        protected final int placementPriority;
 
-        public JigsawConnection(BlockPos pos, ForgeDirection dir, String poolName, String targetName, boolean isRollable, int selectionPriority, int placementPriority) {
+        private JigsawConnection(BlockPos pos, ForgeDirection dir, String poolName, String targetName, boolean isRollable, int selectionPriority, int placementPriority) {
             this.pos = pos;
             this.dir = dir;
             this.poolName = poolName;
