@@ -8,6 +8,7 @@ import java.io.InputStream;
 import java.util.*;
 
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.commons.io.FilenameUtils;
 
 import net.mellow.nbtlib.Config;
 import net.mellow.nbtlib.Registry;
@@ -83,7 +84,7 @@ public class NBTStructure {
     }
 
     public String getName() {
-        return name.substring(0, name.length() - 4); // trim .nbt
+        return FilenameUtils.getBaseName(name);
     }
 
     public int getSizeX() {
